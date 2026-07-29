@@ -295,6 +295,7 @@ select option{background:var(--bg2);color:var(--text);}
         <div class="macros" id="macrosBox"></div>
       </div>
     </div>
+    <div id="waterCard"></div>
     <div class="grid" id="homeGrid"></div>
     <div class="foot">
       <a href="#" onclick="openLink(STORE_URL);return false;">◆ APPNEST</a>
@@ -505,6 +506,49 @@ select option{background:var(--bg2);color:var(--text);}
     </div>
   </section>
 
+  <!-- ══════ MEALS / RECIPES ══════ -->
+  <section class="screen" id="scr-meals">
+    <button class="back-btn" onclick="go('home')"><span class="arr">←</span> <span data-t="back"></span></button>
+    <h1 class="scr-title" data-t="mealsTitle"></h1>
+    <p class="scr-sub" data-t="mealsSub"></p>
+    <button class="btn" onclick="openBuilder()">➕ <span data-t="mealsBuild"></span></button>
+    <div id="mealsList" style="margin-top:16px"></div>
+  </section>
+
+  <!-- ══════ WEEKLY REPORT ══════ -->
+  <section class="screen" id="scr-report">
+    <button class="back-btn" onclick="go('home')"><span class="arr">←</span> <span data-t="back"></span></button>
+    <h1 class="scr-title" data-t="reportTitle"></h1>
+    <p class="scr-sub" data-t="reportSub"></p>
+    <div class="card"><div id="reportChart"></div></div>
+    <div class="wstat">
+      <div class="ws"><div class="ws-n" id="repAvgCal">—</div><div class="ws-l" data-t="reportAvgCal"></div></div>
+      <div class="ws"><div class="ws-n" id="repDays">—</div><div class="ws-l" data-t="reportDaysLogged"></div></div>
+      <div class="ws"><div class="ws-n" id="repStreak">—</div><div class="ws-l" data-t="reportStreak"></div></div>
+    </div>
+    <div class="card"><div class="card-h" data-t="reportAvgMacros"></div><div id="repMacros"></div></div>
+  </section>
+
+  <!-- ══════ FASTING ══════ -->
+  <section class="screen" id="scr-fast">
+    <button class="back-btn" onclick="go('home')"><span class="arr">←</span> <span data-t="back"></span></button>
+    <h1 class="scr-title" data-t="fastTitle"></h1>
+    <p class="scr-sub" data-t="fastSub"></p>
+    <div class="card">
+      <div class="card-h" data-t="fastWindow"></div>
+      <div class="seg" id="segFast">
+        <button data-v="16">16:8</button><button data-v="18">18:6</button><button data-v="20">20:4</button>
+      </div>
+    </div>
+    <div class="hero" style="text-align:center">
+      <div class="cal-ring" style="margin:0 auto 14px">
+        <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--bg4)" stroke-width="9"/><circle id="fastArc" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"/></svg>
+        <div class="ring-txt"><div class="ring-num" id="fastTime" style="font-size:19px">0:00</div><div class="ring-lbl" id="fastState"></div></div>
+      </div>
+      <button class="btn" id="fastBtn" onclick="toggleFast()" data-t="fastStart"></button>
+    </div>
+  </section>
+
   <!-- ══════ AI COACH ══════ -->
   <section class="screen" id="scr-ai">
     <button class="back-btn" onclick="go('home')"><span class="arr">←</span> <span data-t="back"></span></button>
@@ -572,6 +616,7 @@ select option{background:var(--bg2);color:var(--text);}
       </div>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
       <button class="btn ghost" onclick="exportCSV()" style="margin-bottom:10px" data-t="setCSV"></button>
+      <button class="btn ghost" onclick="exportPDF()" style="margin-bottom:10px" data-t="setPDF"></button>
       <button class="btn danger" onclick="deleteAll()" data-t="setDelete"></button>
     </div>
 
@@ -641,6 +686,7 @@ select option{background:var(--bg2);color:var(--text);}
     <button class="btn ghost" style="margin-bottom:12px" onclick="startScan('add')" data-t="scanBarcode"></button>
     <input type="text" id="foodSearch" oninput="renderFoodResults()" placeholder="">
     <div class="chip-row" id="catChips" style="margin-top:10px"></div>
+    <div class="chip-row" id="sortChips"></div>
     <div class="food-res" id="foodResults"></div>
   </div>
 </div>
@@ -660,6 +706,25 @@ select option{background:var(--bg2);color:var(--text);}
     <button class="btn" id="qtyAddBtn" onclick="confirmAddFood()" data-t="addToDiary"></button>
     <button class="btn ghost" id="qtyFavBtn" onclick="addFav(pendingFood)" style="margin-top:8px" data-t="favSave"></button>
     <button class="btn danger" id="qtyDelBtn" onclick="deleteMeal()" style="margin-top:8px;display:none" data-t="removeItem"></button>
+  </div>
+</div>
+
+<!-- ══════ BUILDER MODAL ══════ -->
+<div class="overlay" id="builderModal">
+  <div class="modal">
+    <div class="modal-h"><div class="modal-t" data-t="mealsBuild"></div><button class="modal-x" onclick="closeModal('builderModal')">✕</button></div>
+    <div class="btn-row">
+      <div class="field" style="flex:2"><label data-t="mealName"></label><input type="text" id="bName" placeholder="—"></div>
+      <div class="field" style="flex:1"><label data-t="mealServings"></label><input type="number" id="bServings" value="1" min="1" oninput="renderBuilder()"></div>
+    </div>
+    <label style="font-size:12px;color:var(--text2)" data-t="mealAddItems"></label>
+    <input type="text" id="bSearch" oninput="renderBuilderSearch()" placeholder="🔍" style="margin:6px 0 8px">
+    <div class="food-res" id="bResults" style="max-height:170px"></div>
+    <div class="card-h" data-t="mealItems" style="margin-top:14px"></div>
+    <div id="bItems"></div>
+    <div id="bTotals"></div>
+    <button class="btn" onclick="saveQuickMeal()" style="margin-top:12px" data-t="mealSaveQuick"></button>
+    <button class="btn ghost" onclick="saveRecipeFav()" style="margin-top:8px" data-t="mealSaveRecipe"></button>
   </div>
 </div>
 
@@ -752,6 +817,12 @@ he:{
  dlMini:'⚠️ הנתונים הם הערכות בלבד ואינם ייעוץ רפואי · פרטים',
  toolsTitle:'מחשבונים', toolsSub:'כלי עזר לחישובים — BMI, אחוז שומן, מים ועוד.', bmiTitle:'מדד מסת גוף (BMI)', bmiHealthy:'טווח משקל בריא', bmiUnder:'תת-משקל', bmiNormal:'תקין', bmiOver:'עודף משקל', bmiObese:'השמנה', bmiNote:'BMI הוא כלי סינון גס בלבד ואינו מבחין בין שריר לשומן — למתאמנים עם מסת שריר גבוהה הוא עלול להטעות. אינו אבחון רפואי.', bfTitle:'אחוז שומן (שיטת Navy)', bfDesc:'הערכה לפי היקפים בס״מ. מדוד בסנטימטרים.', bfNeck:'היקף צוואר (ס״מ)', bfWaist:'היקף מותן (ס״מ)', bfHip:'היקף אגן (ס״מ)', bfEssential:'חיוני', bfAthlete:'ספורטאי', bfFit:'כושר', bfAvg:'ממוצע', bfHigh:'גבוה', waterTitle:'צריכת מים מומלצת', waterUnit:'ליטר ליום', waterCups:'כוסות', waterNote:'הערכה כללית (~33 מ״ל לק״ג). הצורך משתנה לפי פעילות, מזג אוויר ומצב בריאותי.', tdeeTitle:'צריכת אנרגיה יומית', tdeeMaint:'שמירה', tdeeGoal:'יעד', scanBarcode:'▦ סרוק ברקוד מוצר', scanShort:'ברקוד', scanTitle:'סריקת ברקוד', scanHint:'כוון את הברקוד למרכז המסך', scanManual:'או הקלד את מספר הברקוד ידנית:', scanLookup:'חפש', scanNotFound:'המוצר לא נמצא במאגר. נסה להקליד ידנית, להוסיף מהרשימה, או לשאול את הבינה.',
  favTab:'מועדפים', favSave:'⭐ שמור למועדפים', favAddList:'⭐ הוסף לרשימה שלי', favAdded:'✓ נוסף למועדפים', favExists:'כבר ברשימת המועדפים', favEmpty:'עדיין אין מועדפים — סרוק מוצר או הוסף מנה ולחץ ⭐',
+ waterCardTitle:'מים היום', waterCup:'כוסות', waterAddCup:'+ כוס', waterAddBottle:'+ בקבוק', waterUndo:'בטל', waterGoalLabel:'יעד יומי', waterGoalReached:'🎉 יעד המים הושג!', streakLabel:'ימים ברצף',
+ mealsTitle:'ארוחות ומתכונים', mealsSub:'שמור ארוחה שלמה בלחיצה אחת, או בנה מתכון וקבל ערך למנה.', mealsBuild:'בנה ארוחה / מתכון', mealsEmpty:'עדיין אין ארוחות שמורות', mealName:'שם', mealServings:'מספר מנות', mealAddItems:'הוסף מרכיבים', mealItems:'מרכיבים', mealTotal:'סה״כ', mealPerServing:'למנה', mealSaveQuick:'שמור כארוחה מהירה', mealSaveRecipe:'שמור מתכון למועדפים', mealAdded:'✓ הארוחה נוספה ליומן', mealNoItems:'הוסף מרכיבים קודם', mealNeedName:'תן שם קודם',
+ reportTitle:'סיכום שבועי', reportSub:'7 הימים האחרונים — קלוריות, מקרו ורצף.', reportAvgCal:'ממוצע קק״ל', reportDaysLogged:'ימים שנרשמו', reportStreak:'רצף', reportAvgMacros:'ממוצע מקרו-נוטריאנטים', reportNoData:'אין עדיין מספיק נתונים לשבוע',
+ fastTitle:'צום לסירוגין', fastSub:'בחר חלון צום והתחל — נעקוב אחרי הזמן.', fastWindow:'חלון צום', fastStart:'התחל צום', fastStop:'סיים צום', fastElapsed:'עבר', fastRemaining:'נותר', fastState:'צום', fastDone:'🎉 הצום הושלם!', fastNotStarted:'לא בצום', fastHours:'שעות',
+ sortDefault:'רגיל', sortProtein:'עתיר חלבון', sortLowCal:'דל קלוריות', sortLowCarb:'דל פחמימות',
+ setPDF:'ייצוא דוח PDF',
  addFood:'הוספת מאכל', grams:'כמות (גרם)', addToDiary:'הוסף ליומן', removeItem:'הסר פריט',
  aiSetupTitle:'חיבור בינה מלאכותית', skip:'דלג',
  saveFail:'⚠ השמירה נכשלה', saved:'✓ נשמר', added:'✓ נוסף ליומן', deleted:'✓ נמחק',
@@ -795,6 +866,12 @@ en:{
  dlMini:'⚠️ Values are estimates only and are not medical advice · details',
  toolsTitle:'Calculators', toolsSub:'Helpers for your numbers — BMI, body fat, water & more.', bmiTitle:'Body Mass Index (BMI)', bmiHealthy:'Healthy weight range', bmiUnder:'Underweight', bmiNormal:'Normal', bmiOver:'Overweight', bmiObese:'Obese', bmiNote:'BMI is a rough screening tool only and does not distinguish muscle from fat — it can mislead for trained people with high muscle mass. Not a medical diagnosis.', bfTitle:'Body fat % (Navy method)', bfDesc:'Estimate from circumferences in cm. Measure in centimetres.', bfNeck:'Neck (cm)', bfWaist:'Waist (cm)', bfHip:'Hip (cm)', bfEssential:'Essential', bfAthlete:'Athlete', bfFit:'Fitness', bfAvg:'Average', bfHigh:'High', waterTitle:'Recommended water intake', waterUnit:'litres/day', waterCups:'cups', waterNote:'Rough estimate (~33 ml/kg). Needs vary with activity, climate and health.', tdeeTitle:'Daily energy', tdeeMaint:'Maintain', tdeeGoal:'Goal', scanBarcode:'▦ Scan product barcode', scanShort:'Barcode', scanTitle:'Scan barcode', scanHint:'Point the barcode at the centre', scanManual:'Or type the barcode number:', scanLookup:'Look up', scanNotFound:'Product not found in the database. Try typing it manually, adding from the list, or asking the AI.',
  favTab:'Favorites', favSave:'⭐ Save to favorites', favAddList:'⭐ Add to my list', favAdded:'✓ Added to favorites', favExists:'Already in favorites', favEmpty:'No favorites yet — scan a product or add a food and tap ⭐',
+ waterCardTitle:'Water today', waterCup:'cups', waterAddCup:'+ cup', waterAddBottle:'+ bottle', waterUndo:'Undo', waterGoalLabel:'Daily goal', waterGoalReached:'🎉 Water goal reached!', streakLabel:'day streak',
+ mealsTitle:'Meals & recipes', mealsSub:'Save a whole meal for one-tap logging, or build a recipe and get per-serving values.', mealsBuild:'Build meal / recipe', mealsEmpty:'No saved meals yet', mealName:'Name', mealServings:'Servings', mealAddItems:'Add ingredients', mealItems:'Ingredients', mealTotal:'Total', mealPerServing:'Per serving', mealSaveQuick:'Save as quick meal', mealSaveRecipe:'Save recipe to favorites', mealAdded:'✓ Meal added to diary', mealNoItems:'Add ingredients first', mealNeedName:'Give it a name first',
+ reportTitle:'Weekly summary', reportSub:'Last 7 days — calories, macros and streak.', reportAvgCal:'Avg kcal', reportDaysLogged:'Days logged', reportStreak:'Streak', reportAvgMacros:'Average macros', reportNoData:'Not enough data yet this week',
+ fastTitle:'Intermittent fasting', fastSub:'Pick a fasting window and start — we track the time.', fastWindow:'Fasting window', fastStart:'Start fast', fastStop:'End fast', fastElapsed:'elapsed', fastRemaining:'left', fastState:'fasting', fastDone:'🎉 Fast complete!', fastNotStarted:'Not fasting', fastHours:'hours',
+ sortDefault:'Default', sortProtein:'High protein', sortLowCal:'Low calorie', sortLowCarb:'Low carb',
+ setPDF:'Export PDF report',
  addFood:'Add food', grams:'Amount (grams)', addToDiary:'Add to diary', removeItem:'Remove item',
  aiSetupTitle:'AI Connection', skip:'Skip',
  saveFail:'⚠ Save failed', saved:'✓ Saved', added:'✓ Added', deleted:'✓ Deleted',
@@ -812,9 +889,15 @@ en:{
  stepsPedTitle:'Built-in pedometer (beta)', stepsPedDesc:'Counts steps while the app is open on screen, using the phone motion sensor. It does not count in the background.', stepsPedStart:'Start counting', stepsPedStop:'Stop & add', stepsPedLive:'counted', stepsPedUnsupported:'Motion sensor not supported on this device/browser', stepsPedDenied:'Sensor permission denied',
  stepsHistory:'History', stepsNoData:'No step data yet', stepsGoalReached:'🎉 Goal reached!', stepsNote:'Note: steps are a standalone activity metric. The activity level you already set in your profile is baked into your calorie target, so calories burned from steps are not auto-added to your eating target — to avoid double-counting.'
 },
-ru:{ back:'Назад', profileTitle:'Мой профиль', diaryTitle:'Дневник питания', weightTitle:'Вес', aiTitle:'Умный тренер', settingsTitle:'Настройки', kcal:'Ккал', protein:'Белок', carbs:'Углеводы', fat:'Жиры', goalLose:'Похудеть', goalMaintain:'Держать', goalGain:'Набор', greetMorning:'Доброе утро', greetDay:'Добрый день', greetEve:'Добрый вечер', calcBtn:'Рассчитать', addToDiary:'Добавить', stepsTitle:'Шаги', toolsTitle:'Калькуляторы' },
-es:{ back:'Atrás', profileTitle:'Mi perfil', diaryTitle:'Diario', weightTitle:'Peso', aiTitle:'Entrenador IA', settingsTitle:'Ajustes', kcal:'Kcal', protein:'Proteína', carbs:'Carbos', fat:'Grasa', goalLose:'Perder', goalMaintain:'Mantener', goalGain:'Ganar', greetMorning:'Buenos días', greetDay:'Buenas tardes', greetEve:'Buenas noches', calcBtn:'Calcular', addToDiary:'Añadir', stepsTitle:'Pasos', toolsTitle:'Calculadoras' },
-ar:{ back:'رجوع', profileTitle:'ملفي', diaryTitle:'يوميات الطعام', weightTitle:'الوزن', aiTitle:'المدرب الذكي', settingsTitle:'الإعدادات', kcal:'سعرات', protein:'بروتين', carbs:'كربوهيدرات', fat:'دهون', goalLose:'إنقاص', goalMaintain:'حفاظ', goalGain:'زيادة', greetMorning:'صباح الخير', greetDay:'مساء الخير', greetEve:'مساء الخير', calcBtn:'احسب', addToDiary:'أضف', stepsTitle:'خطوات', toolsTitle:'حاسبات' }
+ru:{
+ back:'Назад', calcBtn:'Рассчитать цели', yourTargets:'Ваши дневные цели', profileTitle:'Мой профиль', profileSub:'Несколько данных для расчёта калорий и макросов.', fAge:'Возраст', fSex:'Пол', male:'Муж.', female:'Жен.', fHeight:'Рост (см)', fWeight:'Вес (кг)', fActivity:'Уровень активности', act1:'Сидячий — мало/нет нагрузок', act2:'Лёгкий — 1-3 трен./нед.', act3:'Средний — 3-5 трен.', act4:'Высокий — 6-7 трен.', act5:'Атлет — дважды в день', fGoal:'Цель', goalLose:'Похудеть', goalMaintain:'Держать', goalGain:'Набор массы', kcal:'Ккал', protein:'Белок', carbs:'Углеводы', fat:'Жиры', diaryTitle:'Дневник питания', weightTitle:'Вес', weightSub:'Записывайте вес и следите за динамикой.', wToday:'Вес сегодня (кг)', wSave:'Сохранить', wCurrent:'Текущий', wChange:'Изменение', wEntries:'Записей', aiTitle:'Умный тренер', aiSub:'Функции с ИИ. Работает и без подключения — в базовом режиме.', aiFreetext:'Ввод еды текстом', aiFreetextDesc:'Опишите, что вы съели — ИИ оценит калории и макросы и добавит в дневник.', aiAnalyze:'Анализ дня', aiAnalyzeDesc:'Сводка дня относительно цели и один совет.', aiAnalyzeBtn:'Анализ дня', aiSuggest:'Идея приёма пищи', aiSuggestDesc:'Блюдо, которое дополнит то, что осталось на сегодня.', aiSuggestBtn:'Предложить блюдо', aiAsk:'Спросить о блюде (до еды)', aiAskDesc:'Хотите узнать калории или белок до того, как решите? Спросите текстом или сфотографируйте — ответ без записи в дневник.', askPlaceholder:'напр.: сколько калорий в большой пицце?', askBtn:'Спросить', aiAskPhoto:'Спросить о фото', settingsTitle:'Настройки', setGeneral:'Общие', setUsername:'Имя пользователя', setLang:'Язык', setTheme:'Цветовая тема', thGold:'Золото', thGreen:'Зелёный', thBlue:'Синий', thBerry:'Ягода', thTeal:'Бирюза', setAI:'Подключение ИИ', setAIBtn:'Настроить ИИ', setAINote:'Ключ хранится только на вашем устройстве и не отправляется никуда, кроме выбранного провайдера ИИ.', setData:'Данные и резервы', setBackup:'Резерв (JSON)', setRestore:'Восстановить', setCSV:'Экспорт CSV', setDelete:'Удалить все данные', setAbout:'О приложении', aboutLine:'Умный трекер питания для тренировок и похудения', tagline:'Мой калькулятор блюда', setGuide:'Показать гид', aboutVersion:'Версия', aboutDev:'Разработчик', aboutPlatform:'Платформа', aboutStorage:'Хранение данных', aboutStorageVal:'Только на устройстве', aboutLicense:'Лицензия', aboutMoreApps:'Другие приложения Barak Aflalo', aboutShare:'Поделиться приложением', aboutShareSub:'Отправить другу', aboutFeedback:'Обратная связь', aboutFeedbackSub:'Сообщить о проблеме или предложить улучшение', aboutDisclaimer:'Отказ от ответственности', aboutRights:'© 2026 Barak Aflalo · AppNest · Все права защищены', aboutDisclaimerText:'Данные в приложении — калории, макросы, цели и оценки ИИ (включая распознавание по фото) — являются лишь приблизительными и предоставлены для общей информации и удобства. Они могут содержать ошибки. Это НЕ медицинский, диетологический или оздоровительный совет и не заменяет консультацию специалиста. Использование приложения — целиком на ваш риск. Настоятельно рекомендуется проконсультироваться с врачом и дипломированным диетологом перед любыми изменениями в питании, тренировках или образе жизни и проверить данные у них — особенно при заболеваниях, беременности или приёме лекарств. Разработчик и AppNest не несут ответственности за ущерб, потери или решения, принятые на основе информации в приложении. При сканировании штрихкода только его номер (без личных данных) отправляется во внешний сервис Open Food Facts для поиска продукта.', dlMini:'⚠️ Данные — только оценки и не являются медицинским советом · подробнее', toolsTitle:'Калькуляторы', toolsSub:'Помощники для расчётов — ИМТ, жир, вода и др.', bmiTitle:'Индекс массы тела (ИМТ)', bmiHealthy:'Здоровый диапазон веса', bmiUnder:'Недовес', bmiNormal:'Норма', bmiOver:'Избыток', bmiObese:'Ожирение', bmiNote:'ИМТ — грубый инструмент и не различает мышцы и жир — для тренированных людей может вводить в заблуждение. Не является диагнозом.', bfTitle:'Процент жира (метод Navy)', bfDesc:'Оценка по обхватам в см. Измеряйте в сантиметрах.', bfNeck:'Шея (см)', bfWaist:'Талия (см)', bfHip:'Бёдра (см)', bfEssential:'Необходимый', bfAthlete:'Атлет', bfFit:'Фитнес', bfAvg:'Средний', bfHigh:'Высокий', waterTitle:'Рекомендуемая норма воды', waterUnit:'литров/день', waterCups:'стаканов', waterNote:'Примерная оценка (~33 мл/кг). Потребность зависит от активности, климата и здоровья.', tdeeTitle:'Дневная энергия', tdeeMaint:'Поддержание', tdeeGoal:'Цель', scanBarcode:'▦ Сканировать штрихкод', scanShort:'Штрихкод', scanTitle:'Сканирование штрихкода', scanHint:'Наведите штрихкод в центр', scanManual:'Или введите номер штрихкода вручную:', scanLookup:'Найти', scanNotFound:'Продукт не найден. Введите вручную, добавьте из списка или спросите ИИ.', favTab:'Избранное', favSave:'⭐ В избранное', favAddList:'⭐ Добавить в мой список', favAdded:'✓ Добавлено в избранное', favExists:'Уже в избранном', favEmpty:'Пока нет избранного — отсканируйте продукт или добавьте еду и нажмите ⭐', waterCardTitle:'Вода сегодня', waterCup:'стак.', waterAddCup:'+ стакан', waterAddBottle:'+ бутылка', waterUndo:'Отмена', waterGoalLabel:'Дневная цель', waterGoalReached:'🎉 Цель по воде достигнута!', streakLabel:'дней подряд', mealsTitle:'Блюда и рецепты', mealsSub:'Сохраните целое блюдо в один тап или создайте рецепт с расчётом на порцию.', mealsBuild:'Создать блюдо / рецепт', mealsEmpty:'Пока нет сохранённых блюд', mealName:'Название', mealServings:'Порции', mealAddItems:'Добавить ингредиенты', mealItems:'Ингредиенты', mealTotal:'Всего', mealPerServing:'На порцию', mealSaveQuick:'Сохранить как блюдо', mealSaveRecipe:'Сохранить рецепт в избранное', mealAdded:'✓ Блюдо добавлено в дневник', mealNoItems:'Сначала добавьте ингредиенты', mealNeedName:'Сначала укажите название', reportTitle:'Итоги недели', reportSub:'Последние 7 дней — калории, макросы и серия.', reportAvgCal:'Ср. ккал', reportDaysLogged:'Дней записано', reportStreak:'Серия', reportAvgMacros:'Средние макросы', reportNoData:'Пока недостаточно данных за неделю', fastTitle:'Интервальное голодание', fastSub:'Выберите окно голодания и начните — мы отслеживаем время.', fastWindow:'Окно голодания', fastStart:'Начать', fastStop:'Завершить', fastElapsed:'прошло', fastRemaining:'осталось', fastState:'голодание', fastDone:'🎉 Голодание завершено!', fastNotStarted:'Не голодаете', fastHours:'часов', sortDefault:'Обычно', sortProtein:'Много белка', sortLowCal:'Мало калорий', sortLowCarb:'Мало углеводов', setPDF:'Экспорт отчёта PDF', addFood:'Добавить еду', grams:'Количество (граммы)', addToDiary:'В дневник', removeItem:'Удалить', aiSetupTitle:'Подключение ИИ', skip:'Пропустить', saveFail:'⚠ Не удалось сохранить', saved:'✓ Сохранено', added:'✓ Добавлено', deleted:'✓ Удалено', noProfile:'Сначала заполните профиль', calDone:'✓ Цели сохранены', remaining:'осталось', over:'сверх цели', dayGoal:'цель', eaten:'съедено', proLocked:'Функция Pro — нужен ИИ', proLockedDesc:'Подключите ключ ИИ (бесплатный вариант — Gemini), чтобы вводить еду текстом, получать анализ дня и идеи блюд.', connectNow:'Подключить ИИ', ftPlaceholder:'напр.: рис с куриной грудкой и салат', ftBtn:'Оценить и добавить', ftPhoto:'Фото', ftPhotoHint:'Можно сфотографировать тарелку — ИИ распознает содержимое и оценит питательность.', thinking:'Думаю…', confirmDelete:'Удалить ВСЕ данные? Это необратимо.', typeConfirm:'Введите DELETE для подтверждения', emptyDiary:'Сегодня ещё ничего не записано', emptyDiaryHint:'Нажмите ＋, чтобы добавить еду', emptyWeight:'Нет записей веса', greetMorning:'Доброе утро', greetDay:'Добрый день', greetEve:'Добрый вечер', today:'Сегодня', yesterday:'Вчера', analyzeNoAI:'Базовая сводка (без ИИ):', selectProvider:'Сначала выберите провайдера', testConn:'Проверить подключение', testing:'Проверка…', testOk:'✓ Подключено!', testFail:'✗ Ошибка: ', saveConnect:'Сохранить и подключить', aiDisconnect:'Отключить', stepsTitle:'Шаги', stepsSub:'Отслеживайте шаги и дневную активность.', stepsToday:'Шагов сегодня', stepsGoal:'Цель', stepsBurned:'Сожжено (оц.)', stepsCal:'ккал', stepsManual:'Ручной ввод', stepsManualDesc:'Введите число шагов (напр., с часов или телефона) и добавьте.', stepsAdd:'Добавить', stepsSet:'Задать', stepsSteps:'шагов', stepsPedTitle:'Встроенный шагомер (бета)', stepsPedDesc:'Считает шаги, пока приложение открыто на экране, по датчику движения. В фоне не считает.', stepsPedStart:'Начать подсчёт', stepsPedStop:'Стоп и добавить', stepsPedLive:'посчитано', stepsPedUnsupported:'Датчик движения не поддерживается', stepsPedDenied:'Доступ к датчику отклонён', stepsHistory:'История', stepsNoData:'Пока нет данных о шагах', stepsGoalReached:'🎉 Цель достигнута!', stepsNote:'Примечание: шаги — отдельный показатель активности. Уровень активности из профиля уже учтён в цели по калориям, поэтому калории от шагов не добавляются к норме питания автоматически — во избежание двойного учёта.'
+},
+es:{
+ back:'Atrás', calcBtn:'Calcular objetivos', yourTargets:'Tus objetivos diarios', profileTitle:'Mi perfil', profileSub:'Unos datos para calcular tus calorías y macros.', fAge:'Edad', fSex:'Sexo', male:'Hombre', female:'Mujer', fHeight:'Altura (cm)', fWeight:'Peso (kg)', fActivity:'Nivel de actividad', act1:'Sedentario — poco/nada', act2:'Ligero — 1-3 entren./sem.', act3:'Moderado — 3-5 entren.', act4:'Alto — 6-7 entren.', act5:'Atleta — dos veces al día', fGoal:'Objetivo', goalLose:'Perder peso', goalMaintain:'Mantener', goalGain:'Ganar músculo', kcal:'Calorías', protein:'Proteína', carbs:'Carbohidratos', fat:'Grasa', diaryTitle:'Diario de comidas', weightTitle:'Seguimiento de peso', weightSub:'Registra tu peso y sigue la tendencia.', wToday:'Peso hoy (kg)', wSave:'Guardar', wCurrent:'Actual', wChange:'Cambio', wEntries:'Registros', aiTitle:'Entrenador IA', aiSub:'Funciones con IA. También funciona sin conexión, en modo básico.', aiFreetext:'Comida en texto libre', aiFreetextDesc:'Describe lo que comiste — la IA estima calorías y macros y lo registra.', aiAnalyze:'Analizar mi día', aiAnalyzeDesc:'Resumen del día frente a tu objetivo, con un consejo.', aiAnalyzeBtn:'Analizar el día', aiSuggest:'Sugerencia de comida', aiSuggestDesc:'Una comida que completa lo que te queda hoy.', aiSuggestBtn:'Sugerir comida', aiAsk:'Preguntar por un plato (antes de comer)', aiAskDesc:'¿Quieres saber las calorías o proteínas antes de decidir? Pregunta por texto o foto — respuesta sin registrar.', askPlaceholder:'p.ej.: ¿cuántas calorías tiene una pizza grande?', askBtn:'Preguntar', aiAskPhoto:'Preguntar por foto', settingsTitle:'Ajustes', setGeneral:'General', setUsername:'Usuario', setLang:'Idioma', setTheme:'Tema de color', thGold:'Oro', thGreen:'Verde', thBlue:'Azul', thBerry:'Baya', thTeal:'Turquesa', setAI:'Conexión IA', setAIBtn:'Configurar IA', setAINote:'Tu clave se guarda solo en tu dispositivo y no se envía a ningún servidor salvo el proveedor de IA que elijas.', setData:'Datos y copia', setBackup:'Copia (JSON)', setRestore:'Restaurar', setCSV:'Exportar CSV', setDelete:'Borrar todos los datos', setAbout:'Acerca de', aboutLine:'Seguimiento nutricional inteligente para entrenar y perder peso', tagline:'Mi calculadora de platos', setGuide:'Ver guía', aboutVersion:'Versión', aboutDev:'Desarrollado por', aboutPlatform:'Plataforma', aboutStorage:'Almacenamiento', aboutStorageVal:'Solo en tu dispositivo', aboutLicense:'Licencia', aboutMoreApps:'Más apps de Barak Aflalo', aboutShare:'Compartir la app', aboutShareSub:'Enviar a un amigo', aboutFeedback:'Enviar comentarios', aboutFeedbackSub:'Reportar un problema o sugerir una mejora', aboutDisclaimer:'Aviso legal', aboutRights:'© 2026 Barak Aflalo · AppNest · Todos los derechos reservados', aboutDisclaimerText:'Los datos de la app — calorías, macros, objetivos y estimaciones de IA (incluido el reconocimiento por foto) — son solo estimaciones, ofrecidas con fines informativos generales y de comodidad. Pueden contener errores. Esto NO es consejo médico, nutricional ni sanitario y no sustituye la orientación profesional. El uso de la app y su información es enteramente bajo tu responsabilidad. Se recomienda encarecidamente consultar a un médico y a un dietista titulado antes de cambiar tu dieta, entrenamiento o estilo de vida, y verificar los datos con ellos — especialmente si tienes una condición médica, estás embarazada o tomas medicación. El desarrollador y AppNest no se hacen responsables de daños, pérdidas o decisiones tomadas con base en la información de la app. Al escanear un código de barras, solo el número (sin datos personales) se envía al servicio externo Open Food Facts para buscar el producto.', dlMini:'⚠️ Los valores son solo estimaciones y no son consejo médico · detalles', toolsTitle:'Calculadoras', toolsSub:'Ayudas para tus números — IMC, grasa, agua y más.', bmiTitle:'Índice de masa corporal (IMC)', bmiHealthy:'Rango de peso saludable', bmiUnder:'Bajo peso', bmiNormal:'Normal', bmiOver:'Sobrepeso', bmiObese:'Obesidad', bmiNote:'El IMC es solo una herramienta básica y no distingue músculo de grasa — puede confundir en personas entrenadas. No es un diagnóstico.', bfTitle:'% de grasa (método Navy)', bfDesc:'Estimación por perímetros en cm. Mide en centímetros.', bfNeck:'Cuello (cm)', bfWaist:'Cintura (cm)', bfHip:'Cadera (cm)', bfEssential:'Esencial', bfAthlete:'Atleta', bfFit:'En forma', bfAvg:'Promedio', bfHigh:'Alto', waterTitle:'Ingesta de agua recomendada', waterUnit:'litros/día', waterCups:'vasos', waterNote:'Estimación aproximada (~33 ml/kg). Varía según actividad, clima y salud.', tdeeTitle:'Energía diaria', tdeeMaint:'Mantener', tdeeGoal:'Objetivo', scanBarcode:'▦ Escanear código de barras', scanShort:'Código', scanTitle:'Escanear código', scanHint:'Apunta el código al centro', scanManual:'O escribe el número del código:', scanLookup:'Buscar', scanNotFound:'Producto no encontrado. Escríbelo a mano, añádelo de la lista o pregunta a la IA.', favTab:'Favoritos', favSave:'⭐ Guardar en favoritos', favAddList:'⭐ Añadir a mi lista', favAdded:'✓ Añadido a favoritos', favExists:'Ya está en favoritos', favEmpty:'Aún no hay favoritos — escanea un producto o añade una comida y pulsa ⭐', waterCardTitle:'Agua hoy', waterCup:'vasos', waterAddCup:'+ vaso', waterAddBottle:'+ botella', waterUndo:'Deshacer', waterGoalLabel:'Meta diaria', waterGoalReached:'🎉 ¡Meta de agua lograda!', streakLabel:'días seguidos', mealsTitle:'Comidas y recetas', mealsSub:'Guarda una comida entera con un toque, o crea una receta con valores por porción.', mealsBuild:'Crear comida / receta', mealsEmpty:'Aún no hay comidas guardadas', mealName:'Nombre', mealServings:'Porciones', mealAddItems:'Añadir ingredientes', mealItems:'Ingredientes', mealTotal:'Total', mealPerServing:'Por porción', mealSaveQuick:'Guardar como comida rápida', mealSaveRecipe:'Guardar receta en favoritos', mealAdded:'✓ Comida añadida al diario', mealNoItems:'Añade ingredientes primero', mealNeedName:'Pon un nombre primero', reportTitle:'Resumen semanal', reportSub:'Últimos 7 días — calorías, macros y racha.', reportAvgCal:'Cal. media', reportDaysLogged:'Días registrados', reportStreak:'Racha', reportAvgMacros:'Macros promedio', reportNoData:'Aún no hay datos suficientes esta semana', fastTitle:'Ayuno intermitente', fastSub:'Elige una ventana de ayuno y empieza — seguimos el tiempo.', fastWindow:'Ventana de ayuno', fastStart:'Iniciar ayuno', fastStop:'Terminar ayuno', fastElapsed:'transcurrido', fastRemaining:'restante', fastState:'ayuno', fastDone:'🎉 ¡Ayuno completado!', fastNotStarted:'Sin ayuno', fastHours:'horas', sortDefault:'Normal', sortProtein:'Alta proteína', sortLowCal:'Baja caloría', sortLowCarb:'Bajo carbo', setPDF:'Exportar informe PDF', addFood:'Añadir comida', grams:'Cantidad (gramos)', addToDiary:'Añadir al diario', removeItem:'Eliminar', aiSetupTitle:'Conexión de IA', skip:'Omitir', saveFail:'⚠ Error al guardar', saved:'✓ Guardado', added:'✓ Añadido', deleted:'✓ Eliminado', noProfile:'Configura tu perfil primero', calDone:'✓ Objetivos guardados', remaining:'restan', over:'sobre el objetivo', dayGoal:'objetivo', eaten:'comido', proLocked:'Función Pro — requiere IA', proLockedDesc:'Conecta una clave de IA (opción gratuita con Gemini) para registrar comida por texto, análisis diario e ideas de comidas.', connectNow:'Conectar IA', ftPlaceholder:'p.ej.: arroz con pechuga de pollo y ensalada', ftBtn:'Estimar y añadir', ftPhoto:'Foto', ftPhotoHint:'También puedes fotografiar tu plato — la IA identifica lo que hay y estima la nutrición.', thinking:'Pensando…', confirmDelete:'¿Borrar TODOS los datos? No se puede deshacer.', typeConfirm:'Escribe DELETE para confirmar', emptyDiary:'Aún no has registrado nada hoy', emptyDiaryHint:'Pulsa ＋ para añadir comida', emptyWeight:'Sin registros de peso', greetMorning:'Buenos días', greetDay:'Buenas tardes', greetEve:'Buenas noches', today:'Hoy', yesterday:'Ayer', analyzeNoAI:'Resumen básico (sin IA):', selectProvider:'Elige un proveedor primero', testConn:'Probar conexión', testing:'Probando…', testOk:'✓ ¡Conectado!', testFail:'✗ Error: ', saveConnect:'Guardar y conectar', aiDisconnect:'Desconectar', stepsTitle:'Pasos', stepsSub:'Sigue tus pasos y actividad diaria.', stepsToday:'Pasos hoy', stepsGoal:'Meta', stepsBurned:'Quemadas (est.)', stepsCal:'kcal', stepsManual:'Entrada manual', stepsManualDesc:'Escribe el número de pasos (p.ej. del reloj o teléfono) y añádelo.', stepsAdd:'Añadir', stepsSet:'Fijar', stepsSteps:'pasos', stepsPedTitle:'Podómetro integrado (beta)', stepsPedDesc:'Cuenta pasos mientras la app está abierta, con el sensor de movimiento. No cuenta en segundo plano.', stepsPedStart:'Empezar a contar', stepsPedStop:'Parar y añadir', stepsPedLive:'contados', stepsPedUnsupported:'Sensor de movimiento no compatible', stepsPedDenied:'Permiso del sensor denegado', stepsHistory:'Historial', stepsNoData:'Aún no hay datos de pasos', stepsGoalReached:'🎉 ¡Meta alcanzada!', stepsNote:'Nota: los pasos son una métrica de actividad aparte. El nivel de actividad de tu perfil ya está incluido en tu objetivo de calorías, por eso las calorías de los pasos no se suman automáticamente — para evitar doble conteo.'
+},
+ar:{
+ back:'رجوع', calcBtn:'احسب الأهداف', yourTargets:'أهدافك اليومية', profileTitle:'ملفي', profileSub:'بضع تفاصيل لحساب السعرات والماكرو.', fAge:'العمر', fSex:'الجنس', male:'ذكر', female:'أنثى', fHeight:'الطول (سم)', fWeight:'الوزن (كغ)', fActivity:'مستوى النشاط', act1:'خامل — قليل/بدون', act2:'خفيف — 1-3 تمارين/أسبوع', act3:'متوسط — 3-5 تمارين', act4:'عالٍ — 6-7 تمارين', act5:'رياضي — مرتين يوميًا', fGoal:'الهدف', goalLose:'إنقاص الوزن', goalMaintain:'الحفاظ', goalGain:'زيادة العضلات', kcal:'سعرات', protein:'بروتين', carbs:'كربوهيدرات', fat:'دهون', diaryTitle:'يوميات الطعام', weightTitle:'متابعة الوزن', weightSub:'سجّل وزنك وتابع الاتجاه مع الوقت.', wToday:'الوزن اليوم (كغ)', wSave:'حفظ', wCurrent:'الحالي', wChange:'التغيير', wEntries:'سجلات', aiTitle:'المدرب الذكي', aiSub:'ميزات بالذكاء الاصطناعي. تعمل أيضًا دون اتصال — بوضع أساسي.', aiFreetext:'إدخال الطعام بنص حر', aiFreetextDesc:'صف ما أكلته — يقدّر الذكاء الاصطناعي السعرات والماكرو ويسجّلها.', aiAnalyze:'تحليل يومي', aiAnalyzeDesc:'ملخص اليوم مقابل هدفك مع نصيحة واحدة.', aiAnalyzeBtn:'حلّل اليوم', aiSuggest:'اقتراح وجبة', aiSuggestDesc:'وجبة تكمل ما تبقّى لك اليوم.', aiSuggestBtn:'اقترح وجبة', aiAsk:'اسأل عن طبق (قبل الأكل)', aiAskDesc:'تريد معرفة السعرات أو البروتين قبل أن تقرر؟ اسأل بالنص أو بالصورة — إجابة دون تسجيل.', askPlaceholder:'مثال: كم سعرة في بيتزا كبيرة؟', askBtn:'اسأل', aiAskPhoto:'اسأل عن صورة', settingsTitle:'الإعدادات', setGeneral:'عام', setUsername:'اسم المستخدم', setLang:'اللغة', setTheme:'نمط الألوان', thGold:'ذهبي', thGreen:'أخضر', thBlue:'أزرق', thBerry:'توتي', thTeal:'فيروزي', setAI:'اتصال الذكاء', setAIBtn:'إعداد الذكاء الاصطناعي', setAINote:'يُحفظ المفتاح على جهازك فقط ولا يُرسل إلى أي خادم عدا مزوّد الذكاء الذي تختاره.', setData:'البيانات والنسخ', setBackup:'نسخة (JSON)', setRestore:'استعادة', setCSV:'تصدير CSV', setDelete:'حذف كل البيانات', setAbout:'حول', aboutLine:'تتبّع تغذية ذكي للتمارين وإنقاص الوزن', tagline:'حاسبة طبقي', setGuide:'عرض الدليل', aboutVersion:'الإصدار', aboutDev:'تطوير', aboutPlatform:'المنصة', aboutStorage:'تخزين البيانات', aboutStorageVal:'على جهازك فقط', aboutLicense:'الترخيص', aboutMoreApps:'تطبيقات أخرى لـ Barak Aflalo', aboutShare:'شارك التطبيق', aboutShareSub:'أرسل لصديق', aboutFeedback:'إرسال ملاحظات', aboutFeedbackSub:'أبلغ عن مشكلة أو اقترح تحسينًا', aboutDisclaimer:'إخلاء مسؤولية', aboutRights:'© 2026 Barak Aflalo · AppNest · جميع الحقوق محفوظة', aboutDisclaimerText:'البيانات في التطبيق — السعرات والماكرو والأهداف وتقديرات الذكاء الاصطناعي (بما فيها التعرّف بالصورة) — هي تقديرات فقط، مقدّمة لأغراض المعلومات العامة والراحة. قد تحتوي على أخطاء. هذه ليست نصيحة طبية أو غذائية أو صحية وليست بديلاً عن الاستشارة المهنية. استخدام التطبيق ومعلوماته على مسؤوليتك وحدك. يُنصح بشدة باستشارة طبيب وأخصائي تغذية معتمد قبل أي تغيير في نظامك الغذائي أو تمارينك أو نمط حياتك، والتحقق من البيانات معهم — خاصة إذا كانت لديك حالة طبية أو كنت حاملاً أو تتناول أدوية. المطور و AppNest غير مسؤولين عن أي ضرر أو خسارة أو قرار يُتخذ بناءً على المعلومات في التطبيق. عند مسح الباركود، يُرسل رقم الباركود فقط (دون بيانات شخصية) إلى خدمة Open Food Facts الخارجية للبحث عن المنتج.', dlMini:'⚠️ القيم تقديرية فقط وليست نصيحة طبية · التفاصيل', toolsTitle:'حاسبات', toolsSub:'أدوات لحساباتك — كتلة الجسم والدهون والماء والمزيد.', bmiTitle:'مؤشر كتلة الجسم (BMI)', bmiHealthy:'نطاق الوزن الصحي', bmiUnder:'نقص وزن', bmiNormal:'طبيعي', bmiOver:'زيادة وزن', bmiObese:'سمنة', bmiNote:'مؤشر كتلة الجسم أداة تقريبية ولا يميّز العضل عن الدهون — قد يكون مضللاً لمن يتمرّن بكثرة. ليس تشخيصًا طبيًا.', bfTitle:'نسبة الدهون (طريقة Navy)', bfDesc:'تقدير من المحيطات بالسنتيمتر. قِس بالسنتيمترات.', bfNeck:'الرقبة (سم)', bfWaist:'الخصر (سم)', bfHip:'الورك (سم)', bfEssential:'أساسي', bfAthlete:'رياضي', bfFit:'لائق', bfAvg:'متوسط', bfHigh:'مرتفع', waterTitle:'كمية الماء الموصى بها', waterUnit:'لتر/يوم', waterCups:'أكواب', waterNote:'تقدير تقريبي (~33 مل/كغ). يختلف حسب النشاط والمناخ والحالة الصحية.', tdeeTitle:'الطاقة اليومية', tdeeMaint:'الحفاظ', tdeeGoal:'الهدف', scanBarcode:'▦ امسح باركود المنتج', scanShort:'باركود', scanTitle:'مسح الباركود', scanHint:'وجّه الباركود إلى المنتصف', scanManual:'أو أدخل رقم الباركود يدويًا:', scanLookup:'ابحث', scanNotFound:'المنتج غير موجود. جرّب الإدخال يدويًا أو أضف من القائمة أو اسأل الذكاء الاصطناعي.', favTab:'المفضلة', favSave:'⭐ حفظ في المفضلة', favAddList:'⭐ أضف إلى قائمتي', favAdded:'✓ أُضيف إلى المفضلة', favExists:'موجود في المفضلة', favEmpty:'لا مفضلة بعد — امسح منتجًا أو أضف طعامًا واضغط ⭐', waterCardTitle:'الماء اليوم', waterCup:'أكواب', waterAddCup:'+ كوب', waterAddBottle:'+ زجاجة', waterUndo:'تراجع', waterGoalLabel:'الهدف اليومي', waterGoalReached:'🎉 تحقّق هدف الماء!', streakLabel:'أيام متتالية', mealsTitle:'الوجبات والوصفات', mealsSub:'احفظ وجبة كاملة بلمسة واحدة، أو ابنِ وصفة واحصل على القيمة لكل حصة.', mealsBuild:'بناء وجبة / وصفة', mealsEmpty:'لا وجبات محفوظة بعد', mealName:'الاسم', mealServings:'حصص', mealAddItems:'أضف مكوّنات', mealItems:'المكوّنات', mealTotal:'الإجمالي', mealPerServing:'لكل حصة', mealSaveQuick:'حفظ كوجبة سريعة', mealSaveRecipe:'حفظ الوصفة في المفضلة', mealAdded:'✓ أُضيفت الوجبة لليوميات', mealNoItems:'أضف مكوّنات أولاً', mealNeedName:'أعطِ اسمًا أولاً', reportTitle:'ملخص أسبوعي', reportSub:'آخر 7 أيام — سعرات وماكرو وسلسلة.', reportAvgCal:'متوسط السعرات', reportDaysLogged:'أيام مسجّلة', reportStreak:'السلسلة', reportAvgMacros:'متوسط الماكرو', reportNoData:'لا بيانات كافية لهذا الأسبوع بعد', fastTitle:'الصيام المتقطع', fastSub:'اختر نافذة صيام وابدأ — نتابع الوقت.', fastWindow:'نافذة الصيام', fastStart:'ابدأ الصيام', fastStop:'أنهِ الصيام', fastElapsed:'مضى', fastRemaining:'متبقٍ', fastState:'صيام', fastDone:'🎉 اكتمل الصيام!', fastNotStarted:'لست صائمًا', fastHours:'ساعات', sortDefault:'عادي', sortProtein:'عالي البروتين', sortLowCal:'قليل السعرات', sortLowCarb:'قليل الكربوهيدرات', setPDF:'تصدير تقرير PDF', addFood:'أضف طعامًا', grams:'الكمية (غرام)', addToDiary:'أضف لليوميات', removeItem:'إزالة', aiSetupTitle:'اتصال الذكاء الاصطناعي', skip:'تخطّي', saveFail:'⚠ فشل الحفظ', saved:'✓ تم الحفظ', added:'✓ أُضيف', deleted:'✓ حُذف', noProfile:'أعدّ ملفك أولاً', calDone:'✓ حُفظت الأهداف', remaining:'متبقٍ', over:'فوق الهدف', dayGoal:'الهدف', eaten:'مأكول', proLocked:'ميزة Pro — تحتاج ذكاء اصطناعي', proLockedDesc:'اربط مفتاح ذكاء اصطناعي (خيار مجاني عبر Gemini) لإدخال الطعام بالنص والحصول على تحليل يومي واقتراحات وجبات.', connectNow:'اربط الذكاء الآن', ftPlaceholder:'مثال: أرز مع صدر دجاج وسلطة', ftBtn:'قدّر وأضف', ftPhoto:'صورة', ftPhotoHint:'يمكنك أيضًا تصوير طبقك — يتعرّف الذكاء على محتواه ويقدّر قيمته الغذائية.', thinking:'يفكّر…', confirmDelete:'حذف كل البيانات؟ لا يمكن التراجع.', typeConfirm:'اكتب DELETE للتأكيد', emptyDiary:'لم تسجّل شيئًا اليوم بعد', emptyDiaryHint:'اضغط ＋ لإضافة طعام', emptyWeight:'لا سجلات وزن بعد', greetMorning:'صباح الخير', greetDay:'طاب يومك', greetEve:'مساء الخير', today:'اليوم', yesterday:'أمس', analyzeNoAI:'ملخص أساسي (دون ذكاء اصطناعي):', selectProvider:'اختر مزوّدًا أولاً', testConn:'اختبر الاتصال', testing:'جارٍ الاختبار…', testOk:'✓ متصل!', testFail:'✗ فشل: ', saveConnect:'حفظ واتصال', aiDisconnect:'قطع الاتصال', stepsTitle:'خطوات', stepsSub:'تابع خطواتك ونشاطك اليومي.', stepsToday:'خطوات اليوم', stepsGoal:'الهدف', stepsBurned:'محروق (تقديري)', stepsCal:'سعرة', stepsManual:'إدخال يدوي', stepsManualDesc:'اكتب عدد الخطوات (مثلاً من الساعة أو الهاتف) وأضفه.', stepsAdd:'أضف', stepsSet:'تعيين', stepsSteps:'خطوات', stepsPedTitle:'عدّاد خطى مدمج (تجريبي)', stepsPedDesc:'يعدّ الخطوات ما دام التطبيق مفتوحًا على الشاشة، عبر مستشعر الحركة. لا يعدّ في الخلفية.', stepsPedStart:'ابدأ العدّ', stepsPedStop:'أوقف وأضف', stepsPedLive:'مَعدود', stepsPedUnsupported:'مستشعر الحركة غير مدعوم', stepsPedDenied:'رُفض إذن المستشعر', stepsHistory:'السجل', stepsNoData:'لا بيانات خطى بعد', stepsGoalReached:'🎉 تحقّق الهدف!', stepsNote:'ملاحظة: الخطوات مقياس نشاط مستقل. مستوى النشاط في ملفك مُضمَّن أصلاً في هدف السعرات، لذا لا تُضاف سعرات الخطوات إلى هدف الأكل تلقائيًا — تجنبًا للحساب المزدوج.'
+}
 };
 var curLang=sget('lang','he');
 function T(k){return (LANG[curLang]&&LANG[curLang][k])||(LANG.en&&LANG.en[k])||k;}
@@ -850,6 +933,7 @@ function markSeg(id,val){var s=document.getElementById(id);if(!s)return;s.queryS
 
 /* ═══════════════ NAV ═══════════════ */
 function go(id){
+  if(fastTimer){clearInterval(fastTimer);fastTimer=null;}
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('scr-'+id).classList.add('active');
   window.scrollTo(0,0);
@@ -858,6 +942,9 @@ function go(id){
   if(id==='weight')renderWeight();
   if(id==='steps')renderSteps();
   if(id==='tools')renderTools();
+  if(id==='meals')renderMeals();
+  if(id==='report')renderReport();
+  if(id==='fast')renderFast();
   if(id==='profile')loadProfileForm();
   if(id==='ai'){renderFreetext();renderAsk();document.getElementById('analyzeOut').innerHTML='';document.getElementById('suggestOut').innerHTML='';}
   if(id==='settings')loadSettings();
@@ -1460,7 +1547,7 @@ function macroHTML(t,tg){
 function setArc(id,val,tgt){var arc=document.getElementById(id);var circ=327;var pct=tgt?Math.min(1,val/tgt):0;arc.style.strokeDashoffset=circ*(1-pct);arc.style.stroke=val>tgt?'var(--red)':'var(--accent)';}
 
 /* FOOD MODAL */
-function openFoodModal(){document.getElementById('foodSearch').value='';renderCats();renderFoodResults();document.getElementById('foodModal').classList.add('show');}
+function openFoodModal(){document.getElementById('foodSearch').value='';curSort='';renderCats();renderSortChips();renderFoodResults();document.getElementById('foodModal').classList.add('show');}
 function renderCats(){var fav='<span class="chip'+(curCat==='fav'?' on':'')+'" onclick="setCat(\'fav\')">⭐ '+T('favTab')+'</span>';document.getElementById('catChips').innerHTML=fav+CATS.map(function(c){return '<span class="chip'+(curCat===c[0]?' on':'')+'" onclick="setCat(\''+c[0]+'\')">'+(curLang==='he'||curLang==='ar'?c[1]:c[2])+'</span>';}).join('');}
 function setCat(c){curCat=c;renderCats();renderFoodResults();}
 function renderFoodResults(){
@@ -1471,6 +1558,9 @@ function renderFoodResults(){
   }
   var q=(document.getElementById('foodSearch').value||'').toLowerCase().trim();
   var list=FOOD_DB.filter(function(f){var okC=curCat==='all'||f.cat===curCat;var okQ=!q||f.he.toLowerCase().indexOf(q)>-1||f.en.toLowerCase().indexOf(q)>-1;return okC&&okQ;});
+  if(curSort==='protein')list=list.slice().sort(function(a,b){return b.p-a.p;});
+  else if(curSort==='lowcal')list=list.slice().sort(function(a,b){return a.cal-b.cal;});
+  else if(curSort==='lowcarb')list=list.slice().sort(function(a,b){return a.c-b.c;});
   document.getElementById('foodResults').innerHTML=list.map(function(f){var idx=FOOD_DB.indexOf(f);return '<div class="food-r" onclick="pickFood('+idx+')"><span>'+esc(foodName(f))+'</span><span class="fr-cal">'+f.cal+' '+T('kcal')+' /100g</span></div>';}).join('')||'<div class="empty" style="padding:24px">—</div>';
 }
 function pickFood(idx){pendingFood=Object.assign({},FOOD_DB[idx]);editingMeal=null;openQty();}
@@ -1700,11 +1790,153 @@ async function handleBarcode(code){
 }
 var _scanM=document.getElementById('scanModal');if(_scanM)_scanM.addEventListener('click',function(e){if(e.target===this)stopCamOnly();});
 
+/* ═══════════════ WATER + STREAK ═══════════════ */
+function getWaterLog(){return jget('water',{});}
+function todayCups(){return getWaterLog()[todayKey()]||0;}
+function logCup(n){var wl=getWaterLog();wl[todayKey()]=Math.max(0,(wl[todayKey()]||0)+n);jset('water',wl);renderWaterCard();}
+function waterGoal(){var custom=sget('waterGoal','');if(custom)return +custom;return profile?Math.max(6,Math.round(profile.weight*33/250)):8;}
+function setWaterGoal(delta){var g=Math.max(1,Math.min(30,waterGoal()+delta));sset('waterGoal',g);renderWaterCard();}
+function renderWaterCard(){
+  var box=document.getElementById('waterCard');if(!box)return;
+  var c=todayCups(), goal=waterGoal(), drops='';
+  for(var i=0;i<goal;i++){drops+='<span style="font-size:19px;opacity:'+(i<c?'1':'0.25')+'">💧</span>';}
+  var circ='width:32px;height:32px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);color:var(--accent);font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1';
+  box.innerHTML='<div class="card" style="margin-bottom:20px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="card-h" style="margin:0">💧 '+T('waterCardTitle')+'</div><div style="font-family:monospace;color:var(--accent)">'+c+' / '+goal+' '+T('waterCup')+'</div></div>'
+    +'<div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:12px">'+drops+'</div>'
+    +(c>=goal?'<div style="color:var(--green);font-size:12px;margin-bottom:10px">'+T('waterGoalReached')+'</div>':'')
+    +'<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:7px 12px;margin-bottom:10px"><span style="font-size:12px;color:var(--text2)">'+T('waterGoalLabel')+'</span><div style="display:flex;align-items:center;gap:10px"><button style="'+circ+'" onclick="setWaterGoal(-1)">−</button><span style="font-family:monospace;min-width:52px;text-align:center;color:var(--text)">'+goal+' '+T('waterCup')+'</span><button style="'+circ+'" onclick="setWaterGoal(1)">+</button></div></div>'
+    +'<div style="display:flex;gap:8px"><button class="btn ghost" style="flex:1" onclick="logCup(1)">'+T('waterAddCup')+'</button><button class="btn ghost" style="flex:1" onclick="logCup(2)">'+T('waterAddBottle')+'</button><button class="btn ghost" style="flex:0 0 auto;width:auto;padding:0 18px" onclick="logCup(-1)">'+T('waterUndo')+'</button></div>'
+    +'</div>';
+}
+function calcStreak(){
+  var d=getDiary(), streak=0, day=new Date();
+  for(var i=0;i<400;i++){
+    var k=day.getFullYear()+'-'+String(day.getMonth()+1).padStart(2,'0')+'-'+String(day.getDate()).padStart(2,'0');
+    if(d[k]&&d[k].length){streak++;}
+    else if(i!==0){break;}
+    day.setDate(day.getDate()-1);
+  }
+  return streak;
+}
+
+/* ═══════════════ MEALS / RECIPE BUILDER ═══════════════ */
+var builderItems=[];
+function getMeals(){return jget('meals',[]);}
+function openBuilder(){builderItems=[];document.getElementById('bName').value='';document.getElementById('bServings').value=1;document.getElementById('bSearch').value='';renderBuilderSearch();renderBuilder();document.getElementById('builderModal').classList.add('show');}
+function renderBuilderSearch(){
+  var q=(document.getElementById('bSearch').value||'').toLowerCase().trim();
+  var list=FOOD_DB.filter(function(f){return !q||f.he.toLowerCase().indexOf(q)>-1||f.en.toLowerCase().indexOf(q)>-1;}).slice(0,40);
+  document.getElementById('bResults').innerHTML=list.map(function(f){var idx=FOOD_DB.indexOf(f);return '<div class="food-r" onclick="builderAdd('+idx+')"><span>'+esc(foodName(f))+'</span><span class="fr-cal">'+f.cal+' /100g</span></div>';}).join('')||'<div class="empty" style="padding:16px">—</div>';
+}
+function builderAdd(idx){var f=FOOD_DB[idx], g=(f.serv&&f.serv[0])?f.serv[0][1]:100, r=g/100;builderItems.push({name:foodName(f),grams:g,cal:f.cal*r,p:f.p*r,c:f.c*r,f:f.f*r});renderBuilder();}
+function builderRemove(i){builderItems.splice(i,1);renderBuilder();}
+function builderTotals(){var t={cal:0,p:0,c:0,f:0};builderItems.forEach(function(x){t.cal+=x.cal;t.p+=x.p;t.c+=x.c;t.f+=x.f;});return t;}
+function renderBuilder(){
+  document.getElementById('bItems').innerHTML=builderItems.length?builderItems.map(function(x,i){return '<div class="meal-item" style="cursor:default;padding:9px 12px"><div class="mi-info"><div class="mi-name">'+esc(x.name)+'</div><div class="mi-sub">'+x.grams+'g · '+Math.round(x.cal)+' '+T('kcal')+'</div></div><span onclick="builderRemove('+i+')" style="color:var(--red);cursor:pointer;padding:4px 8px">✕</span></div>';}).join(''):'<div class="empty" style="padding:14px">—</div>';
+  var t=builderTotals(), sv=Math.max(1,+document.getElementById('bServings').value||1);
+  document.getElementById('bTotals').innerHTML=builderItems.length?'<div class="tgt-grid" style="margin-top:12px"><div class="tgt"><div class="tgt-n">'+Math.round(t.cal)+'</div><div class="tgt-l">'+T('mealTotal')+'</div></div><div class="tgt"><div class="tgt-n">'+Math.round(t.cal/sv)+'</div><div class="tgt-l">'+T('mealPerServing')+'</div></div><div class="tgt"><div class="tgt-n">'+Math.round(t.p)+'g</div><div class="tgt-l">'+T('protein')+'</div></div><div class="tgt"><div class="tgt-n">'+Math.round(t.c)+'g</div><div class="tgt-l">'+T('carbs')+'</div></div></div>':'';
+}
+function saveQuickMeal(){
+  if(!builderItems.length){toast(T('mealNoItems'));return;}
+  var name=document.getElementById('bName').value.trim();if(!name){toast(T('mealNeedName'));return;}
+  var meals=getMeals();meals.push({id:Date.now(),name:name,items:builderItems.map(function(x){return {name:x.name,grams:x.grams,cal:x.cal,p:x.p,c:x.c,f:x.f};})});
+  jset('meals',meals);closeModal('builderModal');renderMeals();toast(T('saved'));
+}
+function saveRecipeFav(){
+  if(!builderItems.length){toast(T('mealNoItems'));return;}
+  var name=document.getElementById('bName').value.trim();if(!name){toast(T('mealNeedName'));return;}
+  var t=builderTotals(), sv=Math.max(1,+document.getElementById('bServings').value||1), totalG=0;
+  builderItems.forEach(function(x){totalG+=x.grams;});
+  if(totalG<=0)return;
+  var d=totalG/100;
+  addFav({name:name,cal:t.cal/d,p:t.p/d,c:t.c/d,f:t.f/d,serv:[[T('mealPerServing'),Math.round(totalG/sv)]]});
+  closeModal('builderModal');
+}
+function renderMeals(){
+  var meals=getMeals();
+  document.getElementById('mealsList').innerHTML=meals.length?meals.map(function(m,i){var tot=m.items.reduce(function(a,x){return a+x.cal;},0);return '<div class="meal-item" onclick="useMeal('+i+')"><div class="mi-info"><div class="mi-name">🍱 '+esc(m.name)+'</div><div class="mi-sub">'+m.items.length+' '+T('mealItems')+' · '+Math.round(tot)+' '+T('kcal')+'</div></div><div class="mi-cal">＋</div><span onclick="event.stopPropagation();removeMeal('+i+')" style="color:var(--red);padding:4px 8px;cursor:pointer">✕</span></div>';}).join(''):'<div class="empty"><span class="em-ic">🍱</span>'+T('mealsEmpty')+'</div>';
+}
+function removeMeal(i){var m=getMeals();m.splice(i,1);jset('meals',m);renderMeals();}
+function useMeal(i){
+  var m=getMeals()[i];curDay=todayKey();var d=getDiary();if(!d[curDay])d[curDay]=[];
+  m.items.forEach(function(x){d[curDay].push({id:Date.now()+Math.random(),name:x.name,grams:x.grams,cal:x.cal,p:x.p,c:x.c,f:x.f});});
+  jset('diary',d);toast(T('mealAdded'));go('diary');
+}
+
+/* ═══════════════ WEEKLY REPORT ═══════════════ */
+function last7(){var arr=[];for(var i=6;i>=0;i--){var dd=new Date();dd.setDate(dd.getDate()-i);arr.push({key:dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'),label:String(dd.getDate())});}return arr;}
+function renderReport(){
+  var days=last7(), tg=profile?profile.targets.cal:2000, totals=days.map(function(d){return dayTotals(d.key);});
+  var maxCal=tg;totals.forEach(function(t){if(t.cal>maxCal)maxCal=t.cal;});if(maxCal<1)maxCal=1;
+  var W=560,H=180,pad=24,gap=(W-2*pad)/7,bw=gap*0.58;
+  var logged=0,bars='';
+  totals.forEach(function(t,i){
+    if(t.cal>0)logged++;
+    var x=pad+i*gap+(gap-bw)/2, h=(t.cal/maxCal)*(H-2*pad), y=H-pad-h, col=(profile&&t.cal>tg)?'var(--red)':'var(--accent)';
+    bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" rx="3" fill="'+col+'"/><text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-6)+'" fill="var(--text3)" font-size="10" text-anchor="middle" font-family="monospace">'+days[i].label+'</text>';
+  });
+  var gy=H-pad-(tg/maxCal)*(H-2*pad);
+  var goalLine=profile?'<line x1="'+pad+'" y1="'+gy.toFixed(1)+'" x2="'+(W-pad)+'" y2="'+gy.toFixed(1)+'" stroke="var(--text3)" stroke-dasharray="4 4"/>':'';
+  document.getElementById('reportChart').innerHTML=logged?'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+goalLine+bars+'</svg>':'<div class="empty">'+T('reportNoData')+'</div>';
+  var sc=0,sp=0,scc=0,sf=0,cnt=0;
+  totals.forEach(function(t){if(t.cal>0){sc+=t.cal;sp+=t.p;scc+=t.c;sf+=t.f;cnt++;}});
+  document.getElementById('repAvgCal').textContent=cnt?Math.round(sc/cnt):'—';
+  document.getElementById('repDays').textContent=logged+'/7';
+  document.getElementById('repStreak').textContent=calcStreak();
+  document.getElementById('repMacros').innerHTML=cnt?macroHTML({p:Math.round(sp/cnt),c:Math.round(scc/cnt),f:Math.round(sf/cnt)},profile?profile.targets:{protein:120,carbs:200,fat:60}):'<p style="font-size:12px;color:var(--text2)">'+T('reportNoData')+'</p>';
+}
+
+/* ═══════════════ FASTING TIMER ═══════════════ */
+var fastTimer=null, fastWindow=16;
+document.getElementById('segFast').onclick=function(e){var b=e.target.closest('button');if(!b)return;fastWindow=+b.getAttribute('data-v');markSeg('segFast',String(fastWindow));var fs=getFast();if(fs){fs.hours=fastWindow;jset('fast',fs);}renderFast();};
+function getFast(){return jget('fast',null);}
+function toggleFast(){if(getFast())jset('fast',null);else jset('fast',{start:Date.now(),hours:fastWindow});renderFast();}
+function renderFast(){
+  markSeg('segFast',String(fastWindow));
+  var fs=getFast(), btn=document.getElementById('fastBtn'), arc=document.getElementById('fastArc'), tEl=document.getElementById('fastTime'), sEl=document.getElementById('fastState');
+  if(fastTimer){clearInterval(fastTimer);fastTimer=null;}
+  if(!fs){btn.textContent=T('fastStart');btn.className='btn';tEl.textContent='0:00';sEl.textContent=T('fastNotStarted');arc.style.strokeDashoffset=327;arc.style.stroke='var(--accent)';return;}
+  fastWindow=fs.hours||16;markSeg('segFast',String(fastWindow));
+  btn.textContent=T('fastStop');btn.className='btn danger';
+  function tick(){
+    var el=(Date.now()-fs.start)/1000, target=fs.hours*3600, done=el>=target;
+    var h=Math.floor(el/3600), m=Math.floor((el%3600)/60);
+    tEl.textContent=h+':'+String(m).padStart(2,'0');
+    sEl.textContent=done?T('fastDone'):T('fastElapsed');
+    var pct=Math.min(1,el/target);arc.style.strokeDashoffset=327*(1-pct);arc.style.stroke=done?'var(--green)':'var(--accent)';
+  }
+  tick();fastTimer=setInterval(tick,1000);
+}
+
+/* ═══════════════ NUTRITION SORT ═══════════════ */
+var curSort='';
+function renderSortChips(){
+  var opts=[['','sortDefault'],['protein','sortProtein'],['lowcal','sortLowCal'],['lowcarb','sortLowCarb']];
+  document.getElementById('sortChips').innerHTML=opts.map(function(o){return '<span class="chip'+(curSort===o[0]?' on':'')+'" onclick="setSort(\''+o[0]+'\')">'+T(o[1])+'</span>';}).join('');
+}
+function setSort(m){curSort=m;renderSortChips();renderFoodResults();}
+
+/* ═══════════════ PDF REPORT ═══════════════ */
+function exportPDF(){
+  var user=sget('username','')||'—', t=dayTotals(todayKey()), tg=profile?profile.targets:null, meals=dayMeals(todayKey());
+  var rows=meals.map(function(m){return '<tr><td>'+esc(m.name)+'</td><td>'+m.grams+'g</td><td>'+Math.round(m.cal)+'</td><td>'+Math.round(m.p)+'</td><td>'+Math.round(m.c)+'</td><td>'+Math.round(m.f)+'</td></tr>';}).join('');
+  var w=window.open('','_blank');if(!w){toast(T('saveFail'));return;}
+  var dir=(curLang==='he'||curLang==='ar')?'rtl':'ltr';
+  var html='<html dir="'+dir+'"><head><meta charset="utf-8"><title>PlateAI</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:30px;color:#222}h1{color:#b8892b;margin:0}table{width:100%;border-collapse:collapse;margin:14px 0}td,th{border:1px solid #ccc;padding:6px 8px;font-size:13px;text-align:start}th{background:#f4ecd8}.tot{font-weight:bold;background:#faf6ec}.dis{font-size:10px;color:#777;margin-top:26px;line-height:1.6;border-top:1px solid #ddd;padding-top:10px}</style></head><body>';
+  html+='<h1>PlateAI</h1><p style="color:#666;margin:4px 0 0">'+T('diaryTitle')+' · '+esc(user)+' · '+todayKey()+'</p>';
+  html+='<table><tr><th>'+T('addFood')+'</th><th>g</th><th>'+T('kcal')+'</th><th>P</th><th>C</th><th>F</th></tr>'+rows+'<tr class="tot"><td>'+T('mealTotal')+'</td><td></td><td>'+t.cal+'</td><td>'+t.p+'</td><td>'+t.c+'</td><td>'+t.f+'</td></tr></table>';
+  if(tg)html+='<p><b>'+T('dayGoal')+':</b> '+tg.cal+' '+T('kcal')+' · '+T('protein')+' '+tg.protein+'g · '+T('carbs')+' '+tg.carbs+'g · '+T('fat')+' '+tg.fat+'g</p>';
+  html+='<p class="dis">'+T('aboutDisclaimerText')+'</p></body></html>';
+  w.document.write(html);w.document.close();setTimeout(function(){try{w.print();}catch(e){}},400);
+}
+
 /* ═══════════════ HOME ═══════════════ */
 function renderHome(){
   var user=sget('username','');
   var h=new Date().getHours(),g=h<12?T('greetMorning'):(h<18?T('greetDay'):T('greetEve'));
-  document.getElementById('heroGreet').innerHTML=g+(user?', <b>'+esc(user)+'</b>':'')+' 👋';
+  var _stk=calcStreak();
+  document.getElementById('heroGreet').innerHTML=g+(user?', <b>'+esc(user)+'</b>':'')+' 👋'+(_stk>1?' &nbsp;<span style="color:var(--accent);font-size:12px">🔥 '+_stk+' '+T('streakLabel')+'</span>':'');
   var t=dayTotals(todayKey()), tg=profile?profile.targets:null;
   if(tg){
     var left=tg.cal-t.cal;
@@ -1718,14 +1950,18 @@ function renderHome(){
     document.getElementById('macrosBox').innerHTML='<div style="font-size:12px;color:var(--text2);line-height:1.6">'+(curLang==='en'?'Set up your profile to see your daily targets.':'הגדר פרופיל כדי לראות את היעד היומי שלך.')+'</div>';
   }
   var tiles=[
-    ['diary','📖',T('diaryTitle'),curLang==='en'?'Log what you eat':'רישום מה שאכלת',false],
     ['profile','🎯',T('profileTitle'),curLang==='en'?'Goals & targets':'מטרות ויעדים',false],
-    ['weight','⚖️',T('weightTitle'),curLang==='en'?'Track your trend':'מעקב מגמה',false],
+    ['diary','📖',T('diaryTitle'),curLang==='en'?'Log what you eat':'רישום מה שאכלת',false],
+    ['ai','✨',T('aiTitle'),curLang==='en'?'AI-powered help':'עזרה חכמה',true],
+    ['meals','🍱',T('mealsTitle'),curLang==='en'?'Save & reuse meals':'ארוחות ומתכונים',false],
+    ['report','📊',T('reportTitle'),curLang==='en'?'Your week':'הסיכום שלך',false],
+    ['fast','⏱️',T('fastTitle'),curLang==='en'?'Fasting timer':'מתזמן צום',false],
     ['steps','👟',T('stepsTitle'),curLang==='en'?'Daily activity':'פעילות יומית',false],
     ['tools','🧮',T('toolsTitle'),curLang==='en'?'BMI & calculators':'BMI ומחשבונים',false],
-    ['ai','✨',T('aiTitle'),curLang==='en'?'AI-powered help':'עזרה חכמה',true]
+    ['weight','⚖️',T('weightTitle'),curLang==='en'?'Track your trend':'מעקב מגמה',false]
   ];
   document.getElementById('homeGrid').innerHTML=tiles.map(function(t){return '<div class="tile" onclick="go(\''+t[0]+'\')">'+(t[4]?'<span class="pro-tag">PRO</span>':'')+'<span class="tile-ic">'+t[1]+'</span><div class="tile-t">'+t[2]+'</div><div class="tile-d">'+t[3]+'</div></div>';}).join('');
+  renderWaterCard();
 }
 
 /* ═══════════════ AI CONFIG (BYOK) ═══════════════ */
@@ -1988,13 +2224,13 @@ document.getElementById('segLang').onclick=function(e){var b=e.target.closest('b
 document.getElementById('segTheme').onclick=function(e){var b=e.target.closest('button');if(b)setTheme(b.getAttribute('data-v'));};
 document.getElementById('segTheme2').onclick=function(e){var b=e.target.closest('button');if(b)setTheme(b.getAttribute('data-v'));};
 function exportJSON(){
-  var data={app:'PlateAI',version:'1.0',user:sget('username',''),exported:new Date().toISOString(),profile:jget('profile',null),diary:getDiary(),weights:jget('weights',[]),steps:getSteps(),favorites:getFavs()};
+  var data={app:'PlateAI',version:'1.0',user:sget('username',''),exported:new Date().toISOString(),profile:jget('profile',null),diary:getDiary(),weights:jget('weights',[]),steps:getSteps(),favorites:getFavs(),water:getWaterLog(),meals:getMeals(),waterGoal:sget('waterGoal','')};
   var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   dl(blob,'nutriai-backup-'+todayKey()+'.json');toast(T('saved'));
 }
 function importJSON(ev){
   var f=ev.target.files[0];if(!f)return;var r=new FileReader();
-  r.onload=function(){try{var d=JSON.parse(r.result);if(d.profile)jset('profile',d.profile);if(d.diary)jset('diary',d.diary);if(d.weights)jset('weights',d.weights);if(d.steps)jset('steps',d.steps);if(d.favorites)jset('favorites',d.favorites);if(d.user)sset('username',d.user);profile=jget('profile',null);toast(T('saved'));loadSettings();go('home');}catch(e){toast(T('saveFail'));}};
+  r.onload=function(){try{var d=JSON.parse(r.result);if(d.profile)jset('profile',d.profile);if(d.diary)jset('diary',d.diary);if(d.weights)jset('weights',d.weights);if(d.steps)jset('steps',d.steps);if(d.favorites)jset('favorites',d.favorites);if(d.water)jset('water',d.water);if(d.meals)jset('meals',d.meals);if(d.waterGoal)sset('waterGoal',d.waterGoal);if(d.user)sset('username',d.user);profile=jget('profile',null);toast(T('saved'));loadSettings();go('home');}catch(e){toast(T('saveFail'));}};
   r.readAsText(f);ev.target.value='';
 }
 function exportCSV(){
@@ -2007,7 +2243,7 @@ function dl(blob,name){var a=document.createElement('a');a.href=URL.createObject
 function deleteAll(){
   if(!confirm(T('confirmDelete')))return;
   var c=prompt(T('typeConfirm'));if(c!=='DELETE')return;
-  ['profile','diary','weights','steps','favorites','username'].forEach(function(k){STORE.removeItem('plateai_'+k);});
+  ['profile','diary','weights','steps','favorites','water','meals','fast','waterGoal','username'].forEach(function(k){STORE.removeItem('plateai_'+k);});
   profile=null;toast(T('deleted'));go('home');
 }
 var STORE_URL='https://barakaflalo.github.io/appnest';

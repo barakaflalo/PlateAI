@@ -1,5 +1,5 @@
 /* AppNest Service Worker — PlateAI */
-const VERSION = 'plateai-v2';
+const VERSION = 'plateai-v5';
 const CORE = ['./plateai.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
