@@ -7,7 +7,7 @@
 <meta name="description" content="מעקב תזונה, קלוריות ומקרו-נוטריאנטים — לירידה במשקל ולמתאמנים. עובד אופליין, עם בינה אופציונלית.">
 <meta name="theme-color" content="#0a0a0a">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PlateAI">
@@ -2266,8 +2266,9 @@ function openLink(url){window.open(url,'_blank','noopener');}
 function sendFeedback(){window.open('mailto:'+FEEDBACK_EMAIL+'?subject='+encodeURIComponent('PlateAI Feedback'),'_blank');}
 function shareApp(){
   var msg=(sget('username','')||'')+' · PlateAI · '+(curLang==='en'?'smart nutrition tracking':'מעקב תזונה חכם');
-  if(navigator.share){navigator.share({title:'PlateAI',text:msg,url:STORE_URL}).catch(function(){});}
-  else{try{navigator.clipboard.writeText(STORE_URL);}catch(e){}toast(T('saved'));}
+  var appUrl=location.href.split('#')[0];
+  if(navigator.share){navigator.share({title:'PlateAI',text:msg,url:appUrl}).catch(function(){});}
+  else{try{navigator.clipboard.writeText(appUrl);}catch(e){}toast(T('saved'));}
 }
 
 /* ═══════════════ GUIDE ═══════════════ */
