@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlateAI — מדיניות פרטיות</title>
+<meta name="theme-color" content="#0a0a0a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Sans+Hebrew:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#c9a84c;--accent-dim:#8a6d2f;--bg:#070707;--bg2:#101010;--bg3:#181818;--border:#2a2416;--text:#e5dcc4;--text2:#9a8d6a;--text3:#5f543a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Hebrew',sans-serif;line-height:1.75;padding:0 0 60px;}
+.hdr{background:linear-gradient(180deg,var(--bg2),var(--bg));border-bottom:1px solid var(--border);padding:16px;position:sticky;top:0;z-index:10;}
+.hdr-in{max-width:760px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.brand{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--accent);}
+.brand span{color:var(--text);}
+.tag{font-size:8px;letter-spacing:3px;color:var(--accent-dim);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;}
+.tools{display:flex;gap:8px;}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:7px 13px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;text-decoration:none;transition:.2s;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn.on{border-color:var(--accent);color:var(--accent);background:#1a1405;}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px;}
+h1{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;color:var(--text);margin-bottom:6px;}
+.eff{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:24px;}
+h2{font-size:16px;color:var(--accent);margin:24px 0 8px;font-weight:700;}
+p{color:var(--text2);margin-bottom:10px;font-size:14px;}
+ul{margin:0 0 10px;padding-inline-start:22px;}
+li{color:var(--text2);font-size:14px;margin-bottom:6px;}
+b{color:var(--text);}
+a{color:var(--accent);}
+.foot{max-width:760px;margin:30px auto 0;padding:16px 18px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;}
+.lang{display:none;}
+.lang.show{display:block;}
+body.en{direction:ltr;}
+</style>
+</head>
+<body dir="rtl">
+<header class="hdr">
+  <div class="hdr-in">
+    <div>
+      <div class="tag">APPNEST</div>
+      <div class="brand">Plate<span>AI</span></div>
+    </div>
+    <div class="tools">
+      <button class="btn on" id="btnHe" onclick="setL('he')">עברית</button>
+      <button class="btn" id="btnEn" onclick="setL('en')">EN</button>
+      <a class="btn" href="./index.html">← <span id="backTxt">לאפליקציה</span></a>
+    </div>
+  </div>
+</header>
+
+<!-- Hebrew -->
+<div class="lang show" id="he">
+  <div class="wrap">
+    <h1>מדיניות פרטיות</h1>
+    <div class="eff">עודכן: יולי 2026 · PlateAI · AppNest</div>
+
+    <p>PlateAI ("האפליקציה") פותחה על ידי Barak Aflalo תחת המותג AppNest. אנו מכבדים את פרטיותך, והאפליקציה תוכננה כך שהנתונים שלך יישארו שלך. מסמך זה מסביר בפשטות מה נשמר, מה נשלח החוצה, ומתי.</p>
+
+    <h2>1. הנתונים שלך נשמרים על המכשיר בלבד</h2>
+    <p>כל הנתונים שלך — פרופיל, יומן אכילה, משקל, צעדים, מים, מועדפים, ארוחות שמורות, הגדרות, ומפתח הבינה אם הזנת — נשמרים <b>אך ורק באחסון המקומי של הדפדפן במכשיר שלך</b>. אין חשבון משתמש, אין הרשמה, ואין שרת. איננו אוספים, רואים, שולחים או מאחסנים את הנתונים שלך בשום מקום.</p>
+
+    <h2>2. מה נשלח החוצה — ורק כשאתה יוזם זאת</h2>
+    <ul>
+      <li><b>תכונות בינה (Pro):</b> כשאתה משתמש בהזנת אוכל בטקסט חופשי, זיהוי אוכל מתמונה, ניתוח יומי, הצעת ארוחה או שאלה על מנה — הטקסט ו/או התמונה שאתה מספק נשלחים ישירות מהמכשיר שלך לספק הבינה שבחרת (Anthropic, Google, OpenAI, או שרת מקומי משלך) כדי לקבל את התשובה. מפתח ה-API שלך נשמר על המכשיר בלבד ואינו עובר דרך שרתי AppNest.</li>
+      <li><b>סריקת ברקוד:</b> מספר הברקוד בלבד (ללא נתונים אישיים) נשלח לשירות החיצוני Open Food Facts כדי לשלוף את פרטי המוצר.</li>
+    </ul>
+    <p>לשירותים חיצוניים אלה יש מדיניות פרטיות משלהם, החלה על המידע שאתה בוחר לשלוח אליהם.</p>
+
+    <h2>3. מצלמה וחיישני תנועה</h2>
+    <p>המצלמה (לסריקת ברקוד ולצילום אוכל) וחיישן התנועה (למד הצעדים המובנה) פועלים מקומית במכשיר בלבד. איננו מקליטים אותם ואיננו שולחים אותם לשום מקום — למעט תמונה שאתה בעצמך בוחר לשלוח לפיצ׳ר הבינה.</p>
+
+    <h2>4. ללא מעקב, אנליטיקה או פרסומות</h2>
+    <p>האפליקציה אינה כוללת כלי מעקב, אנליטיקה, עוגיות צד-שלישי או פרסומות.</p>
+
+    <h2>5. השליטה בידיים שלך</h2>
+    <p>בכל רגע אתה יכול לייצא גיבוי מלא של הנתונים (JSON ו-CSV) מתוך מסך ההגדרות, וכן למחוק את כל הנתונים לצמיתות. מכיוון שהנתונים נשמרים מקומית, ניקוי נתוני הדפדפן או מעבר למכשיר אחר ימחקו אותם — לכן מומלץ לגבות מדי פעם.</p>
+
+    <h2>6. אינו ייעוץ רפואי</h2>
+    <p>המידע והערכים באפליקציה (כולל הערכות הבינה) הם הערכות בלבד ואינם ייעוץ רפואי, תזונתי או בריאותי. מומלץ להתייעץ עם רופא/ה ודיאטן/ית מוסמכ/ת.</p>
+
+    <h2>7. יצירת קשר</h2>
+    <p>לשאלות בנושא פרטיות: <a href="mailto:appnest55@gmail.com">appnest55@gmail.com</a></p>
+  </div>
+</div>
+
+<!-- English -->
+<div class="lang" id="en">
+  <div class="wrap">
+    <h1>Privacy Policy</h1>
+    <div class="eff">Updated: July 2026 · PlateAI · AppNest</div>
+
+    <p>PlateAI (the "app") was developed by Barak Aflalo under the AppNest brand. We respect your privacy, and the app is designed so your data stays yours. This document explains, in plain terms, what is stored, what is sent out, and when.</p>
+
+    <h2>1. Your data is stored on your device only</h2>
+    <p>All of your data — profile, food diary, weight, steps, water, favorites, saved meals, settings, and your AI key if you enter one — is stored <b>solely in your browser's local storage on your device</b>. There is no account, no sign-up, and no server. We do not collect, see, transmit, or store your data anywhere.</p>
+
+    <h2>2. What is sent out — and only when you initiate it</h2>
+    <ul>
+      <li><b>AI features (Pro):</b> when you use free-text food entry, photo food recognition, daily analysis, meal suggestions, or ask about a dish, the text and/or image you provide is sent directly from your device to the AI provider you chose (Anthropic, Google, OpenAI, or your own local server) to generate the answer. Your API key is stored on your device only and never passes through any AppNest server.</li>
+      <li><b>Barcode scanning:</b> the barcode number only (no personal data) is sent to the external Open Food Facts service to look up the product.</li>
+    </ul>
+    <p>These external services have their own privacy policies governing the information you choose to send them.</p>
+
+    <h2>3. Camera and motion sensors</h2>
+    <p>The camera (for barcode scanning and food photos) and the motion sensor (for the built-in pedometer) operate locally on your device only. We do not record them or send them anywhere — except for an image you yourself choose to send to the AI feature.</p>
+
+    <h2>4. No tracking, analytics, or ads</h2>
+    <p>The app contains no tracking tools, analytics, third-party cookies, or advertising.</p>
+
+    <h2>5. You are in control</h2>
+    <p>At any time you can export a full backup of your data (JSON and CSV) from the Settings screen, and permanently delete all data. Because data is stored locally, clearing your browser data or switching devices will erase it — so backing up occasionally is recommended.</p>
+
+    <h2>6. Not medical advice</h2>
+    <p>The information and values in the app (including AI estimates) are estimates only and are not medical, nutritional, or health advice. Please consult a physician and a registered dietitian.</p>
+
+    <h2>7. Contact</h2>
+    <p>For privacy questions: <a href="mailto:appnest55@gmail.com">appnest55@gmail.com</a></p>
+  </div>
+</div>
+
+<div class="foot">© AppNest 2026 · Barak Aflalo</div>
+
+<script>
+function setL(l){
+  document.getElementById('he').classList.toggle('show',l==='he');
+  document.getElementById('en').classList.toggle('show',l==='en');
+  document.getElementById('btnHe').classList.toggle('on',l==='he');
+  document.getElementById('btnEn').classList.toggle('on',l==='en');
+  document.body.dir=(l==='he')?'rtl':'ltr';
+  document.body.classList.toggle('en',l==='en');
+  document.documentElement.lang=l;
+  document.getElementById('backTxt').textContent=(l==='he')?'לאפליקציה':'Back to app';
+}
+</script>
+</body>
+</html>
