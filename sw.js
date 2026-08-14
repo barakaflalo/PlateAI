@@ -1,5 +1,5 @@
-/* AppNest Service Worker — PlateAI */
-const VERSION = 'plateai-v8';
+/* AppNest Service Worker — PlateAI · network-first shell */
+const VERSION = 'plateai-v10';
 const CORE = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,14 +15,14 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  // Only handle same-origin GET. Cross-origin (AI providers, Open Food Facts, CDNs) pass through untouched.
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  // Network-first: always try the network so users get the latest version automatically;
+  // fall back to cache only when offline.
   e.respondWith(
-    caches.match(e.request).then(hit => {
-      const net = fetch(e.request).then(res => {
-        if (res.ok) caches.open(VERSION).then(c => c.put(e.request, res.clone()));
-        return res;
-      }).catch(() => hit);
-      return hit || net;
-    })
+    fetch(e.request).then(res => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(e.request, copy)); }
+      return res;
+    }).catch(() => caches.match(e.request).then(hit => hit || caches.match('./index.html')))
   );
 });

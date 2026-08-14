@@ -840,7 +840,7 @@ he:{
  emptyDiary:'עדיין לא רשמת כלום היום', emptyDiaryHint:'לחץ על ＋ להוספת מאכל', emptyWeight:'אין עדיין רשומות משקל',
  greetMorning:'בוקר טוב', greetDay:'צהריים טובים', greetEve:'ערב טוב',
  today:'היום', yesterday:'אתמול', analyzeNoAI:'סיכום בסיסי (ללא בינה):', selectProvider:'בחר ספק בינה קודם',
- testConn:'בדוק חיבור', testing:'בודק…', testOk:'✓ החיבור תקין!', testFail:'✗ נכשל: ', saveConnect:'שמור וחבר', aiDisconnect:'נתק',
+ testConn:'בדוק חיבור', aiRefreshModels:'🔄 רענן רשימת מודלים', aiModelLabel:'מודל', testing:'בודק…', testOk:'✓ החיבור תקין!', testFail:'✗ נכשל: ', saveConnect:'שמור וחבר', aiDisconnect:'נתק',
  stepsTitle:'צעדים', stepsSub:'עקוב אחרי הצעדים והפעילות היומית שלך.', stepsToday:'צעדים היום', stepsGoal:'יעד', stepsBurned:'נשרף בהערכה', stepsCal:'קק״ל',
  stepsManual:'הזנה ידנית', stepsManualDesc:'הקלד את מספר הצעדים (למשל מהשעון או מהטלפון) והוסף.', stepsAdd:'הוסף', stepsSet:'קבע', stepsSteps:'צעדים',
  stepsPedTitle:'מד צעדים מובנה (בטא)', stepsPedDesc:'סופר צעדים כל עוד האפליקציה פתוחה על המסך, לפי חיישן התנועה של הטלפון. לא סופר ברקע.', stepsPedStart:'התחל ספירה', stepsPedStop:'עצור והוסף', stepsPedLive:'נספרו', stepsPedUnsupported:'החיישן לא נתמך במכשיר/דפדפן הזה', stepsPedDenied:'ההרשאה לחיישן נדחתה',
@@ -889,7 +889,7 @@ en:{
  emptyDiary:'Nothing logged yet today', emptyDiaryHint:'Tap ＋ to add food', emptyWeight:'No weight entries yet',
  greetMorning:'Good morning', greetDay:'Good afternoon', greetEve:'Good evening',
  today:'Today', yesterday:'Yesterday', analyzeNoAI:'Basic summary (no AI):', selectProvider:'Pick a provider first',
- testConn:'Test connection', testing:'Testing…', testOk:'✓ Connected!', testFail:'✗ Failed: ', saveConnect:'Save & connect', aiDisconnect:'Disconnect',
+ testConn:'Test connection', aiRefreshModels:'🔄 Refresh model list', aiModelLabel:'Model', testing:'Testing…', testOk:'✓ Connected!', testFail:'✗ Failed: ', saveConnect:'Save & connect', aiDisconnect:'Disconnect',
  stepsTitle:'Steps', stepsSub:'Track your daily steps and activity.', stepsToday:'Steps today', stepsGoal:'Goal', stepsBurned:'Est. burned', stepsCal:'kcal',
  stepsManual:'Manual entry', stepsManualDesc:'Type your step count (e.g. from your watch or phone) and add it.', stepsAdd:'Add', stepsSet:'Set', stepsSteps:'steps',
  stepsPedTitle:'Built-in pedometer (beta)', stepsPedDesc:'Counts steps while the app is open on screen, using the phone motion sensor. It does not count in the background.', stepsPedStart:'Start counting', stepsPedStop:'Stop & add', stepsPedLive:'counted', stepsPedUnsupported:'Motion sensor not supported on this device/browser', stepsPedDenied:'Sensor permission denied',
@@ -1756,26 +1756,55 @@ function calcTools(){
 
 /* ═══════════════ BARCODE SCANNING (Open Food Facts) ═══════════════ */
 var scanPurpose='add', scanStream=null, scanDetector=null, scanRAF=null, scanning=false;
+var zxingReader=null;
+function loadZXing(){return new Promise(function(res,rej){
+  if(window.ZXing){res();return;}
+  var cdns=['https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js','https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js'],i=0;
+  (function tryLoad(){
+    if(i>=cdns.length){rej(new Error('zxing load failed'));return;}
+    var sc=document.createElement('script');sc.src=cdns[i++];
+    sc.onload=function(){window.ZXing?res():tryLoad();};sc.onerror=tryLoad;document.head.appendChild(sc);
+  })();
+});}
+function scanCamError(err){
+  document.getElementById('scanCam').style.display='none';
+  var n=(err&&err.name)||'', en=(curLang==='en'), m;
+  if(n==='NotAllowedError')m=en?'Camera permission denied — allow it in your browser, or type the number below.':'הרשאת מצלמה נדחתה — אשר אותה בדפדפן, או הזן את המספר למטה.';
+  else if(n==='NotFoundError')m=en?'No camera found — type the barcode number below.':'לא נמצאה מצלמה — הזן את מספר הברקוד למטה.';
+  else if(n==='NotReadableError')m=en?'Camera is busy in another app — close it and retry, or type below.':'המצלמה תפוסה באפליקציה אחרת — סגור ונסה שוב, או הזן למטה.';
+  else if(location.protocol!=='https:'&&location.hostname!=='localhost')m=en?'Camera needs a secure (https) page — type the number below.':'המצלמה דורשת עמוד מאובטח (https) — הזן את המספר למטה.';
+  else m=en?'Camera unavailable — type the barcode number below.':'המצלמה לא זמינה — הזן את מספר הברקוד למטה.';
+  document.getElementById('scanOut').innerHTML='<div class="ai-out" style="color:var(--text2)">'+m+'</div>';
+}
 function startScan(purpose){
   scanPurpose=purpose;
   document.getElementById('scanCode').value='';
   document.getElementById('scanOut').innerHTML='';
   document.getElementById('scanModal').classList.add('show');
   var camBox=document.getElementById('scanCam');
-  if(('BarcodeDetector' in window)&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+  var hasGUM=navigator.mediaDevices&&navigator.mediaDevices.getUserMedia;
+  if(('BarcodeDetector' in window)&&hasGUM){
     camBox.style.display='block';
     try{scanDetector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});}catch(e){scanDetector=null;}
     navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(stream){
       scanStream=stream;var v=document.getElementById('scanVideo');v.srcObject=stream;v.play();scanning=true;scanLoop();
-    }).catch(function(){camBox.style.display='none';});
-  }else{camBox.style.display='none';}
+    }).catch(function(err){scanCamError(err);});
+  } else if(hasGUM){
+    camBox.style.display='block';
+    loadZXing().then(function(){
+      zxingReader=new ZXing.BrowserMultiFormatReader();
+      zxingReader.decodeFromConstraints({video:{facingMode:'environment'}},'scanVideo',function(result){
+        if(result){var c=result.getText();stopCamOnly();handleBarcode(c);}
+      }).catch(function(err){scanCamError(err);});
+    }).catch(function(){camBox.style.display='none';document.getElementById('scanOut').innerHTML='<div class="ai-out" style="color:var(--text2)">'+(curLang==='en'?'Live scan needs internet on this device — enter the number below.':'סריקה חיה דורשת אינטרנט במכשיר הזה — הזן את המספר למטה.')+'</div>';});
+  } else {camBox.style.display='none';}
 }
 async function scanLoop(){
   if(!scanning||!scanDetector)return;
   try{var codes=await scanDetector.detect(document.getElementById('scanVideo'));if(codes&&codes.length){stopCamOnly();handleBarcode(codes[0].rawValue);return;}}catch(e){}
   scanRAF=requestAnimationFrame(scanLoop);
 }
-function stopCamOnly(){scanning=false;if(scanRAF)cancelAnimationFrame(scanRAF);if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}}
+function stopCamOnly(){scanning=false;if(scanRAF)cancelAnimationFrame(scanRAF);if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}if(zxingReader){try{zxingReader.reset();}catch(e){}zxingReader=null;}}
 function stopScan(){stopCamOnly();document.getElementById('scanModal').classList.remove('show');}
 function submitManualCode(){var c=document.getElementById('scanCode').value.trim();if(c)handleBarcode(c);}
 async function lookupBarcode(code){
@@ -1996,7 +2025,7 @@ function renderHome(){
 }
 
 /* ═══════════════ AI CONFIG (BYOK) ═══════════════ */
-var AI=jget('ai',{provider:null,claudeKey:'',openaiKey:'',geminiKey:'',deviceUrl:'http://localhost:11434/v1',customUrl:'',customKey:'',model:'sonnet'});
+var AI=jget('ai',{provider:null,claudeKey:'',openaiKey:'',geminiKey:'',deviceUrl:'http://localhost:11434/v1',customUrl:'',customKey:'',model:'sonnet',claudeModelId:'',geminiModel:'',openaiModel:''});
 var selProvider=AI.provider, selModel=AI.model||'sonnet';
 function aiConnected(){
   if(!AI.provider)return false;
@@ -2027,6 +2056,48 @@ var KEYINFO={
  device:{label:{he:'כתובת API מקומית',en:'Local API URL'},ph:'http://localhost:11434/v1',steps:{he:['התקן <a href="https://ollama.ai" target="_blank">Ollama</a> או <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','הרץ מודל: ollama pull llama3','ודא שהשרת פועל'],en:['Install <a href="https://ollama.ai" target="_blank">Ollama</a> / <a href="https://lmstudio.ai" target="_blank">LM Studio</a>','ollama pull llama3','Make sure server runs']}},
  custom:{label:{he:'כתובת endpoint',en:'Endpoint URL'},ph:'https://your-api.com/v1/chat/completions'}
 };
+var liveModels={};
+function modelPickerHTML(id){
+  var cur=({claude:AI.claudeModelId,gemini:AI.geminiModel,openai:AI.openaiModel})[id]||'';
+  var out='<button class="btn ghost" style="margin-top:10px;font-size:12px" onclick="refreshModels(\''+id+'\')">'+T('aiRefreshModels')+'</button>';
+  if(liveModels[id]&&liveModels[id].length){
+    var opts='<option value="">'+(curLang==='en'?'(default)':'(ברירת מחדל)')+'</option>';
+    liveModels[id].forEach(function(m){opts+='<option value="'+esc(m)+'"'+(cur===m?' selected':'')+'>'+esc(m)+'</option>';});
+    out+='<select id="modelSel-'+id+'" onchange="pickModel(\''+id+'\',this.value)" style="width:100%;margin-top:8px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px;font-size:13px">'+opts+'</select>';
+  }
+  if(cur)out+='<div style="font-size:11px;color:var(--text3);margin-top:4px">'+T('aiModelLabel')+': '+esc(cur)+'</div>';
+  return out;
+}
+function pickModel(id,val){
+  if(id==='claude')AI.claudeModelId=val; else if(id==='gemini')AI.geminiModel=val; else if(id==='openai')AI.openaiModel=val;
+  jset('ai',AI);renderAISetup();
+}
+async function refreshModels(id){
+  var keyEl=document.getElementById('in-'+id), key=keyEl?keyEl.value.trim():'';
+  if(!key){toast(curLang==='en'?'Enter your key first':'הזן מפתח קודם');return;}
+  toast(curLang==='en'?'Loading models…':'טוען מודלים…');
+  try{
+    var list=[];
+    if(id==='gemini'){
+      var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key));
+      if(!r.ok){var e=await r.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||('HTTP '+r.status));}
+      var d=await r.json();
+      list=(d.models||[]).filter(function(m){return m.supportedGenerationMethods&&m.supportedGenerationMethods.indexOf('generateContent')>-1&&/gemini/.test(m.name||'');}).map(function(m){return m.name.replace('models/','');});
+    } else if(id==='openai'){
+      var r2=await fetch('https://api.openai.com/v1/models',{headers:{'Authorization':'Bearer '+key}});
+      if(!r2.ok){var e2=await r2.json().catch(function(){return{};});throw new Error((e2.error&&e2.error.message)||('HTTP '+r2.status));}
+      var d2=await r2.json();
+      list=(d2.data||[]).map(function(m){return m.id;}).filter(function(x){return /^(gpt|o[0-9]|chatgpt)/.test(x);}).sort();
+    } else if(id==='claude'){
+      var r3=await fetch('https://api.anthropic.com/v1/models',{headers:{'x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}});
+      if(!r3.ok){var e3=await r3.json().catch(function(){return{};});throw new Error((e3.error&&e3.error.message)||('HTTP '+r3.status));}
+      var d3=await r3.json();
+      list=(d3.data||[]).map(function(m){return m.id;});
+    }
+    if(!list.length){toast(curLang==='en'?'No models returned':'לא הוחזרו מודלים');return;}
+    liveModels[id]=list;renderAISetup();
+  }catch(e){toast('✗ '+String(e.message||e).slice(0,90));}
+}
 function openAISetup(){renderAISetup();document.getElementById('aiModal').classList.add('show');}
 function renderAISetup(){
   var L=curLang==='en'?'en':'he';
@@ -2046,6 +2117,7 @@ function renderAISetup(){
     if(ki.note)h+='<div class="note">'+ki.note[L]+'</div>';
     if(ki.video)h+='<a href="'+ki.video+'" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;padding:10px;border:1px solid var(--accent-dim);border-radius:9px;color:var(--accent);font-size:12px;text-decoration:none">'+ki.videoLabel[L]+'</a>';
     if(p.id==='claude'){h+='<div class="model-row">'+['haiku','sonnet','opus'].map(function(m){var pr={haiku:'$',sonnet:'$$',opus:'$$$'};return '<button class="'+(selModel===m?'on':'')+'" onclick="selModel=\''+m+'\';renderAISetup()">'+m+'<small>'+pr[m]+'</small></button>';}).join('')+'</div>';}
+    if(p.id==='claude'||p.id==='gemini'||p.id==='openai')h+=modelPickerHTML(p.id);
     h+='</div>';
   });
   h+='<button class="btn" style="margin-top:8px" onclick="saveAI()">'+T('saveConnect')+'</button>';
@@ -2069,7 +2141,7 @@ function disconnectAI(){AI.provider=null;selProvider=null;jset('ai',AI);updateAI
 async function testAI(){
   var btn=document.getElementById('testBtn');btn.textContent=T('testing');btn.disabled=true;
   try{var r=await callAI('Reply with exactly: OK');btn.textContent=T('testOk');btn.className='btn ghost';setTimeout(function(){btn.disabled=false;btn.textContent='🔌 '+T('testConn');},2500);}
-  catch(e){btn.textContent=T('testFail')+String(e.message||e).slice(0,40);setTimeout(function(){btn.disabled=false;btn.textContent='🔌 '+T('testConn');},4000);}
+  catch(e){btn.textContent=T('testFail')+String(e.message||e).slice(0,120);setTimeout(function(){btn.disabled=false;btn.textContent='🔌 '+T('testConn');},7000);}
 }
 
 /* ═══════════════ AI CALLS ═══════════════ */
@@ -2078,33 +2150,43 @@ async function callAI(prompt,image){
   var p=AI.provider;
   if(p==='claude'){
     if(!AI.claudeKey)throw new Error('No key');
-    var models={haiku:'claude-haiku-4-5-20251001',sonnet:'claude-sonnet-4-20250514',opus:'claude-opus-4-20250514'};
+    var models={haiku:'claude-haiku-4-5-20251001',sonnet:'claude-sonnet-4-6',opus:'claude-opus-4-8'};
     var content=image?[{type:'image',source:{type:'base64',media_type:image.mediaType,data:image.data}},{type:'text',text:prompt}]:prompt;
-    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AI.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:models[AI.model]||models.sonnet,max_tokens:1024,messages:[{role:'user',content:content}]})});
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AI.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI.claudeModelId||models[AI.model]||models.sonnet,max_tokens:2048,messages:[{role:'user',content:content}]})});
     if(!r.ok){var e=await r.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||('HTTP '+r.status));}
     var d=await r.json();return d.content.map(function(x){return x.text||'';}).join('');
   }
   if(p==='openai'||p==='device'||p==='custom'){
     var url,key,model;
-    if(p==='openai'){url='https://api.openai.com/v1/chat/completions';key=AI.openaiKey;model=image?'gpt-4o':'gpt-4o-mini';}
+    if(p==='openai'){url='https://api.openai.com/v1/chat/completions';key=AI.openaiKey;model=AI.openaiModel||(image?'gpt-4o':'gpt-4o-mini');}
     else if(p==='device'){url=AI.deviceUrl.replace(/\/+$/,'')+'/chat/completions';key='';model='llama3';}
     else{url=AI.customUrl;key=AI.customKey;model='gpt-4o-mini';}
     var content2=image?[{type:'text',text:prompt},{type:'image_url',image_url:{url:'data:'+image.mediaType+';base64,'+image.data}}]:prompt;
     var h={'Content-Type':'application/json'};if(key)h['Authorization']='Bearer '+key;
-    var r2=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({model:model,max_tokens:1024,messages:[{role:'user',content:content2}]})});
-    if(!r2.ok)throw new Error('HTTP '+r2.status);
+    var r2=await fetch(url,{method:'POST',headers:h,body:JSON.stringify({model:model,max_tokens:2048,messages:[{role:'user',content:content2}]})});
+    if(!r2.ok){var e2=await r2.json().catch(function(){return{};});throw new Error((e2.error&&e2.error.message)||('HTTP '+r2.status));}
     var d2=await r2.json();return d2.choices[0].message.content;
   }
   if(p==='gemini'){
     if(!AI.geminiKey)throw new Error('No key');
     var keys=AI.geminiKey.split(/[\n,;]+/).map(function(s){return s.trim();}).filter(Boolean);
-    var gmodels=['gemini-2.5-flash','gemini-2.0-flash','gemini-flash-latest','gemini-1.5-flash'];
+    var gmodels=(AI.geminiModel?[AI.geminiModel]:[]).concat(['gemini-flash-latest','gemini-2.5-flash','gemini-3-flash']).filter(function(x,i,a){return x&&a.indexOf(x)===i;});
     var parts=image?[{text:prompt},{inline_data:{mime_type:image.mediaType,data:image.data}}]:[{text:prompt}];
-    for(var ki=0;ki<keys.length;ki++){for(var mi=0;mi<gmodels.length;mi++){
-      try{var r3=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gmodels[mi]+':generateContent?key='+keys[ki],{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:parts}]})});
-      if(r3.ok){var d3=await r3.json();return d3.candidates[0].content.parts[0].text;}}catch(e){}
+    var lastErr='', fatal=false;
+    for(var ki=0;ki<keys.length&&!fatal;ki++){for(var mi=0;mi<gmodels.length;mi++){
+      try{
+        var r3=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gmodels[mi]+':generateContent?key='+keys[ki],{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:parts}]})});
+        if(r3.ok){var d3=await r3.json();
+          if(d3.candidates&&d3.candidates[0]&&d3.candidates[0].content&&d3.candidates[0].content.parts)return d3.candidates[0].content.parts.map(function(pp){return pp.text||'';}).join('');
+          lastErr=(d3.promptFeedback&&d3.promptFeedback.blockReason)?('blocked: '+d3.promptFeedback.blockReason):'empty response';
+        } else {
+          var eg=await r3.json().catch(function(){return{};});
+          lastErr=(eg.error&&eg.error.message)||('HTTP '+r3.status);
+          if(r3.status===400||r3.status===403){fatal=true;break;}
+        }
+      }catch(e){lastErr=String(e.message||e);}
     }}
-    throw new Error('Gemini failed');
+    throw new Error(lastErr||'Gemini failed');
   }
   throw new Error('No provider');
 }
