@@ -1,6 +1,6 @@
 /* AppNest Service Worker — PlateAI · network-first shell */
-const VERSION = 'plateai-v10';
-const CORE = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const VERSION = 'plateai-v11';
+const CORE = ['./index.html', './appnest-assistant.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

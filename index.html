@@ -2409,5 +2409,69 @@ window.addEventListener('load',function(){
   if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
 });
 </script>
+  <!-- ═══════════ עוזר AppNest ═══════════
+       "המפה" של PlateAI. המנוע (appnest-assistant.js) זהה לזה של SunoPrep
+       והטוטו; רק המפה מותאמת:
+       • PlateAI שומר מפתחות ב-plateai_ai (claudeKey/geminiKey ישירים) → readAiConfig מותאם.
+       • PlateAI מנווט דרך go() → navigate מותאם. -->
+  <script>
+    window.APPNEST_ASSISTANT_CONFIG = {
+      appName: 'PlateAI',
+      appDescription:
+        'PlateAI הוא מחשבון ומעקב תזונה: רושמים אוכל ביומן, סופרים קלוריות ומאקרו (חלבון/פחמימה/שומן), ' +
+        'עוקבים אחרי משקל וצעדים, מחשבים TDEE ויעדים, ויש מאמן AI, מתכונים, דוח שבועי, טיימר צום, ומחשבונים. ' +
+        'עזור למשתמש בשאלות תזונה (כמה קלוריות/חלבון במאכל, מה לאכול, איך להגיע ליעד), ולמצוא את דרכו בין המסכים. ' +
+        'שים לב: אתה נותן הערכות כלליות בלבד — לא ייעוץ רפואי או תזונתי מקצועי. לשאלות בריאותיות, המלץ להתייעץ עם רופא או דיאטן.',
+
+      // PlateAI שומר את ה-AI באובייקט אחד (plateai_ai) עם המפתחות כשדות ישירים. ממירים לפורמט האחיד.
+      readAiConfig: function () {
+        try {
+          var ai = JSON.parse(localStorage.getItem('plateai_ai') || 'null');
+          if (!ai || !ai.provider) return null;
+          return {
+            provider: ai.provider,
+            keys: {
+              gemini: ai.geminiKey || '',
+              claude: ai.claudeKey || '',
+              openai: ai.openaiKey || '',
+              deviceUrl: ai.deviceUrl || '',
+              customUrl: ai.customUrl || '',
+              customKey: ai.customKey || ''
+            }
+          };
+        } catch (e) { return null; }
+      },
+
+      // PlateAI מנווט דרך הפונקציה go(id)
+      navigate: function (screenId) { if (window.go) window.go(screenId); },
+
+      // מסכים (שם ידידותי → מזהה המסך)
+      tabs: [
+        { name: 'בית',        screen: 'home' },
+        { name: 'פרופיל',     screen: 'profile' },
+        { name: 'יומן אוכל',  screen: 'diary' },
+        { name: 'משקל',       screen: 'weight' },
+        { name: 'צעדים',      screen: 'steps' },
+        { name: 'מחשבונים',   screen: 'tools' },
+        { name: 'ארוחות',     screen: 'meals' },
+        { name: 'דוח שבועי',  screen: 'report' },
+        { name: 'צום',        screen: 'fast' },
+        { name: 'מאמן AI',    screen: 'ai' },
+        { name: 'הגדרות',     screen: 'settings' },
+        { name: 'אודות',      screen: 'about' }
+      ],
+
+      // אין שדה "כתיבת תוכן" מרכזי — העוזר עונה על שאלות תזונה ישירות בצ'אט.
+      fields: [],
+
+      suggestions: [
+        'כמה קלוריות בבננה?',
+        'מה לאכול לארוחת ערב דלת קלוריות?',
+        'עבור ליומן האוכל',
+        'פתח את המחשבונים'
+      ]
+    };
+  </script>
+  <script src="appnest-assistant.js"></script>
 </body>
 </html>
