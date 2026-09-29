@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>/* Moved to its own address. Redirect ONLY from the old GitHub Pages address (same repo feeds both). */(function(){try{if(location.hostname==='barakaflalo.github.io'){var p=location.pathname.replace(/^\/[^\/]+/,'')||'/';location.replace('https://plateai.pages.dev'+p+location.search+location.hash);}}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>PlateAI — מחשבון המנה שלי</title>
 <meta name="description" content="מעקב תזונה, קלוריות ומקרו-נוטריאנטים — לירידה במשקל ולמתאמנים. עובד אופליין, עם בינה אופציונלית.">
@@ -2361,7 +2362,7 @@ function deleteAll(){
   ['profile','diary','weights','steps','favorites','water','meals','fast','waterGoal','stepGoal','lastBackup','firstUse','username'].forEach(function(k){STORE.removeItem('plateai_'+k);});
   profile=null;toast(T('deleted'));go('home');
 }
-var STORE_URL='https://barakaflalo.github.io/appnest';
+var STORE_URL='https://appnest-store.pages.dev';
 var FEEDBACK_EMAIL='appnest55@gmail.com';
 function openLink(url){window.open(url,'_blank','noopener');}
 function sendFeedback(){window.open('mailto:'+FEEDBACK_EMAIL+'?subject='+encodeURIComponent('PlateAI Feedback'),'_blank');}
